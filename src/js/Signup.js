@@ -93,16 +93,30 @@ class Signup {
 					password: this.signPw,
 					name: this.state.nickname,
 				})
-				.then(() =>
-					this.api.updateProfile({
-						sport: this.state.sport || undefined,
-						team_code: this.state.teamCode || undefined,
-						role: "athlete",
-					}),
-				)
-				.then((user) => {
-					this.state.athleteCode =
-						user.player_code || this.state.athleteCode;
+				.then(async () => {
+					// 프로필 업데이트는 best-effort (team_code 없는 팀은 404)
+					try {
+						const user = await this.api.updateProfile({
+							sport: this.state.sport || undefined,
+							team_code: this.state.teamCode || undefined,
+							role: "athlete",
+						});
+						if (user && user.player_code) {
+							this.state.athleteCode = user.player_code;
+						}
+					} catch (e) {
+						this.toast.show(`팀 코드 확인: ${e.message}`, true);
+						// team_code 검증 실패 시 sport/role 이라도 저장 재시도
+						try {
+							const user = await this.api.updateProfile({
+								sport: this.state.sport || undefined,
+								role: "athlete",
+							});
+							if (user && user.player_code) {
+								this.state.athleteCode = user.player_code;
+							}
+						} catch (_) {}
+					}
 					showWelcome();
 				})
 				.catch((e) => this.toast.show(`가입 실패: ${e.message}`, true));
