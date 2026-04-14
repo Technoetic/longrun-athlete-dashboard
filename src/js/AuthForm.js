@@ -33,13 +33,10 @@ class AuthForm {
 		if (this.api) {
 			this.api
 				.login({ email, password: pw })
-				.then((data) => {
-					this.api.setToken(data.access_token);
-					return this.api.me();
-				})
+				.then(() => this.api.me())
 				.then((user) => {
-					this.state.nickname = user.nickname;
-					this.state.athleteCode = user.athlete_code;
+					this.state.nickname = user.name || email.split("@")[0];
+					this.state.athleteCode = user.player_code || this.state.athleteCode;
 					if (user.team_code) this.state.teamCode = user.team_code;
 					this.router.go("home");
 				})

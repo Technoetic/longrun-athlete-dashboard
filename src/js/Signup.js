@@ -91,16 +91,18 @@ class Signup {
 				.signup({
 					email: this.signEmail,
 					password: this.signPw,
-					nickname: this.state.nickname,
-					sport: this.state.sport || null,
-					team_code: this.state.teamCode || null,
+					name: this.state.nickname,
 				})
-				.then((data) => {
-					this.api.setToken(data.access_token);
-					return this.api.me();
-				})
+				.then(() =>
+					this.api.updateProfile({
+						sport: this.state.sport || undefined,
+						team_code: this.state.teamCode || undefined,
+						role: "athlete",
+					}),
+				)
 				.then((user) => {
-					this.state.athleteCode = user.athlete_code;
+					this.state.athleteCode =
+						user.player_code || this.state.athleteCode;
 					showWelcome();
 				})
 				.catch((e) => this.toast.show(`가입 실패: ${e.message}`, true));

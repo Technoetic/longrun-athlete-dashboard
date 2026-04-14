@@ -454,21 +454,23 @@ this.profilePhoto = "";
 <script>class Api {
 constructor(baseUrl) {
 this.baseUrl = baseUrl || "";
-this.token = null;
+this.currentEmail = null;
 }
-setToken(token) {
-this.token = token;
+async _request(method, path, body, opts = {}) {
+const headers = {};
+let payload;
+if (opts.form) {
+headers["Content-Type"] = "application/x-www-form-urlencoded";
+payload = new URLSearchParams(body).toString();
+} else if (body !== undefined) {
+headers["Content-Type"] = "application/json";
+payload = JSON.stringify(body);
 }
-_headers() {
-const h = { "Content-Type": "application/json" };
-if (this.token) h.Authorization = `Bearer ${this.token}`;
-return h;
-}
-async _request(method, path, body) {
 const res = await fetch(`${this.baseUrl}${path}`, {
 method,
-headers: this._headers(),
-body: body ? JSON.stringify(body) : undefined,
+headers,
+body: payload,
+credentials: "include",
 });
 if (!res.ok) {
 let detail = res.statusText;
@@ -479,34 +481,70 @@ detail = data.detail || detail;
 throw new Error(`${res.status}: ${detail}`);
 }
 if (res.status === 204) return null;
-return res.json();
+const text = await res.text();
+return text ? JSON.parse(text) : null;
 }
-signup(payload) {
-return this._request("POST", "/api/auth/signup", payload);
+signup({ email, password, name, phone }) {
+this.currentEmail = email;
+return this._request("POST", "/api/auth/signup", {
+email,
+password,
+name,
+phone,
+});
 }
-login(payload) {
-return this._request("POST", "/api/auth/login", payload);
+login({ email, password }) {
+this.currentEmail = email;
+return this._request(
+"POST",
+"/api/auth/login",
+{ username: email, password },
+{ form: true },
+);
+}
+logout() {
+this.currentEmail = null;
+return this._request("POST", "/api/auth/logout");
 }
 me() {
-return this._request("GET", "/api/auth/me");
+return this._request("GET", "/api/user/me");
 }
-createRecord(payload) {
-return this._request("POST", "/api/records", payload);
+updateProfile(payload) {
+return this._request("PATCH", "/api/user/me", payload);
 }
-listRecords() {
-return this._request("GET", "/api/records");
+createCondition({ sleep, fatigue, mood, energy, compositeScore, acwr, srpe }) {
+return this._request("POST", "/api/conditions", {
+sleep,
+fatigue,
+mood,
+energy,
+composite_score: compositeScore,
+acwr,
+srpe,
+});
 }
-postWatchMetric(payload) {
-return this._request("POST", "/api/watch/metrics", payload);
+createWorkout({ name, durationSeconds = 0, srpe, intensity }) {
+return this._request("POST", "/api/workouts", {
+name,
+duration_seconds: durationSeconds,
+srpe,
+intensity,
+});
 }
-latestWatchMetric() {
-return this._request("GET", "/api/watch/latest");
+createInjury({ partName, side, diagnosis }) {
+return this._request("POST", "/api/injuries", {
+part_name: partName,
+side,
+diagnosis,
+});
 }
-joinTeam(payload) {
-return this._request("POST", "/api/team/join", payload);
+async postWatchData(data) {
+const email = data.email || this.currentEmail;
+if (!email) throw new Error("email 필요 (로그인 후 호출)");
+return this._request("POST", "/api/watch-data", { ...data, email });
 }
-myTeam() {
-return this._request("GET", "/api/team/me");
+getBioData() {
+return this._request("GET", "/api/bio-data");
 }
 }</script>
 <script>class Toast {
@@ -595,13 +633,10 @@ this.state.athleteCode = "LR-" + Math.floor(1000 + Math.random() * 9000);
 if (this.api) {
 this.api
 .login({ email, password: pw })
-.then((data) => {
-this.api.setToken(data.access_token);
-return this.api.me();
-})
+.then(() => this.api.me())
 .then((user) => {
-this.state.nickname = user.nickname;
-this.state.athleteCode = user.athlete_code;
+this.state.nickname = user.name || email.split("@")[0];
+this.state.athleteCode = user.player_code || this.state.athleteCode;
 if (user.team_code) this.state.teamCode = user.team_code;
 this.router.go("home");
 })
@@ -722,16 +757,18 @@ this.api
 .signup({
 email: this.signEmail,
 password: this.signPw,
-nickname: this.state.nickname,
-sport: this.state.sport || null,
-team_code: this.state.teamCode || null,
+name: this.state.nickname,
 })
-.then((data) => {
-this.api.setToken(data.access_token);
-return this.api.me();
-})
+.then(() =>
+this.api.updateProfile({
+sport: this.state.sport || undefined,
+team_code: this.state.teamCode || undefined,
+role: "athlete",
+}),
+)
 .then((user) => {
-this.state.athleteCode = user.athlete_code;
+this.state.athleteCode =
+user.player_code || this.state.athleteCode;
 showWelcome();
 })
 .catch((e) => this.toast.show(`가입 실패: ${e.message}`, true));
@@ -774,9 +811,17 @@ const temp = Number((36.2 + Math.random() * 0.8).toFixed(1));
 document.getElementById("hrValue").textContent = hr;
 document.getElementById("spo2Value").textContent = spo2;
 document.getElementById("tempValue").textContent = temp.toFixed(1);
-if (this.api && this.api.token) {
+if (this.api && this.api.currentEmail) {
 this.api
-.postWatchMetric({ heart_rate: hr, spo2, temperature: temp })
+.postWatchData({
+heart_rate: hr,
+resting_heart_rate: Math.max(50, hr - 20),
+hrv: 40 + Math.random() * 30,
+blood_oxygen: spo2,
+steps: Math.floor(3000 + Math.random() * 7000),
+sleep_hours: 6 + Math.random() * 2,
+active_calories: 200 + Math.random() * 300,
+})
 .catch(() => {});
 }
 };
@@ -848,26 +893,31 @@ this.scheduleMidnightReset();
 submitDaily() {
 if (!this.state.intensity)
 return this.toast.show("운동 강도를 선택하세요", true);
-if (this.api && this.api.token) {
-const today = new Date();
-const date =
-today.getFullYear() +
-"-" +
-String(today.getMonth() + 1).padStart(2, "0") +
-"-" +
-String(today.getDate()).padStart(2, "0");
+if (this.api && this.api.currentEmail) {
+const val = this.state.intensity;
 const tags = Array.from(
 document.querySelectorAll(".injury-tag.selected"),
 ).map((el) => el.textContent);
 const note =
 document.querySelector(".injury-textarea")?.value || "";
-this.api
-.createRecord({
-date,
-intensity: this.state.intensity,
-injury_tags: tags,
-injury_note: note,
-})
+const intensityLabel =
+val <= 3 ? "low" : val <= 6 ? "moderate" : val <= 8 ? "high" : "max";
+const tasks = [
+this.api.createCondition({
+srpe: val,
+compositeScore: Math.max(0, 100 - val * 5),
+fatigue: val,
+}),
+this.api.createWorkout({
+name: "일일 훈련",
+srpe: val,
+intensity: intensityLabel,
+}),
+];
+for (const tag of tags) {
+tasks.push(this.api.createInjury({ partName: tag, diagnosis: note }));
+}
+Promise.all(tasks)
 .then(() => this.toast.show("오늘의 기록이 제출되었습니다"))
 .catch((e) => this.toast.show(`제출 실패: ${e.message}`, true));
 return;
@@ -908,9 +958,9 @@ document.getElementById("homeTeamName").textContent = "팀 " + code;
 document.getElementById("homeTeamCode").textContent = code;
 this.modal.close();
 this.toast.show("팀이 변경되었습니다");
-if (this.api && this.api.token) {
+if (this.api && this.api.currentEmail) {
 this.api
-.joinTeam({ team_code: code })
+.updateProfile({ team_code: code })
 .catch((e) => this.toast.show(`팀 동기화 실패: ${e.message}`, true));
 }
 }

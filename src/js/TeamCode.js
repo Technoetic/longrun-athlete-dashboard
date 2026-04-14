@@ -26,9 +26,9 @@ class TeamCode {
 		document.getElementById("homeTeamCode").textContent = code;
 		this.modal.close();
 		this.toast.show("팀이 변경되었습니다");
-		if (this.api && this.api.token) {
+		if (this.api && this.api.currentEmail) {
 			this.api
-				.joinTeam({ team_code: code })
+				.updateProfile({ team_code: code })
 				.catch((e) => this.toast.show(`팀 동기화 실패: ${e.message}`, true));
 		}
 	}

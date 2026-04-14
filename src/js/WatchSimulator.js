@@ -32,9 +32,17 @@ class WatchSimulator {
 			document.getElementById("hrValue").textContent = hr;
 			document.getElementById("spo2Value").textContent = spo2;
 			document.getElementById("tempValue").textContent = temp.toFixed(1);
-			if (this.api && this.api.token) {
+			if (this.api && this.api.currentEmail) {
 				this.api
-					.postWatchMetric({ heart_rate: hr, spo2, temperature: temp })
+					.postWatchData({
+						heart_rate: hr,
+						resting_heart_rate: Math.max(50, hr - 20),
+						hrv: 40 + Math.random() * 30,
+						blood_oxygen: spo2,
+						steps: Math.floor(3000 + Math.random() * 7000),
+						sleep_hours: 6 + Math.random() * 2,
+						active_calories: 200 + Math.random() * 300,
+					})
 					.catch(() => {});
 			}
 		};

@@ -1,24 +1,24 @@
 class Api {
 	constructor(baseUrl) {
 		this.baseUrl = baseUrl || "";
-		this.token = null;
+		this.currentEmail = null;
 	}
 
-	setToken(token) {
-		this.token = token;
-	}
-
-	_headers() {
-		const h = { "Content-Type": "application/json" };
-		if (this.token) h.Authorization = `Bearer ${this.token}`;
-		return h;
-	}
-
-	async _request(method, path, body) {
+	async _request(method, path, body, opts = {}) {
+		const headers = {};
+		let payload;
+		if (opts.form) {
+			headers["Content-Type"] = "application/x-www-form-urlencoded";
+			payload = new URLSearchParams(body).toString();
+		} else if (body !== undefined) {
+			headers["Content-Type"] = "application/json";
+			payload = JSON.stringify(body);
+		}
 		const res = await fetch(`${this.baseUrl}${path}`, {
 			method,
-			headers: this._headers(),
-			body: body ? JSON.stringify(body) : undefined,
+			headers,
+			body: payload,
+			credentials: "include",
 		});
 		if (!res.ok) {
 			let detail = res.statusText;
@@ -29,34 +29,79 @@ class Api {
 			throw new Error(`${res.status}: ${detail}`);
 		}
 		if (res.status === 204) return null;
-		return res.json();
+		const text = await res.text();
+		return text ? JSON.parse(text) : null;
 	}
 
-	signup(payload) {
-		return this._request("POST", "/api/auth/signup", payload);
+	signup({ email, password, name, phone }) {
+		this.currentEmail = email;
+		return this._request("POST", "/api/auth/signup", {
+			email,
+			password,
+			name,
+			phone,
+		});
 	}
-	login(payload) {
-		return this._request("POST", "/api/auth/login", payload);
+
+	login({ email, password }) {
+		this.currentEmail = email;
+		return this._request(
+			"POST",
+			"/api/auth/login",
+			{ username: email, password },
+			{ form: true },
+		);
 	}
+
+	logout() {
+		this.currentEmail = null;
+		return this._request("POST", "/api/auth/logout");
+	}
+
 	me() {
-		return this._request("GET", "/api/auth/me");
+		return this._request("GET", "/api/user/me");
 	}
-	createRecord(payload) {
-		return this._request("POST", "/api/records", payload);
+
+	updateProfile(payload) {
+		return this._request("PATCH", "/api/user/me", payload);
 	}
-	listRecords() {
-		return this._request("GET", "/api/records");
+
+	createCondition({ sleep, fatigue, mood, energy, compositeScore, acwr, srpe }) {
+		return this._request("POST", "/api/conditions", {
+			sleep,
+			fatigue,
+			mood,
+			energy,
+			composite_score: compositeScore,
+			acwr,
+			srpe,
+		});
 	}
-	postWatchMetric(payload) {
-		return this._request("POST", "/api/watch/metrics", payload);
+
+	createWorkout({ name, durationSeconds = 0, srpe, intensity }) {
+		return this._request("POST", "/api/workouts", {
+			name,
+			duration_seconds: durationSeconds,
+			srpe,
+			intensity,
+		});
 	}
-	latestWatchMetric() {
-		return this._request("GET", "/api/watch/latest");
+
+	createInjury({ partName, side, diagnosis }) {
+		return this._request("POST", "/api/injuries", {
+			part_name: partName,
+			side,
+			diagnosis,
+		});
 	}
-	joinTeam(payload) {
-		return this._request("POST", "/api/team/join", payload);
+
+	async postWatchData(data) {
+		const email = data.email || this.currentEmail;
+		if (!email) throw new Error("email 필요 (로그인 후 호출)");
+		return this._request("POST", "/api/watch-data", { ...data, email });
 	}
-	myTeam() {
-		return this._request("GET", "/api/team/me");
+
+	getBioData() {
+		return this._request("GET", "/api/bio-data");
 	}
 }

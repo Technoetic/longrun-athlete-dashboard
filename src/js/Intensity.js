@@ -64,26 +64,31 @@ class Intensity {
 	submitDaily() {
 		if (!this.state.intensity)
 			return this.toast.show("운동 강도를 선택하세요", true);
-		if (this.api && this.api.token) {
-			const today = new Date();
-			const date =
-				today.getFullYear() +
-				"-" +
-				String(today.getMonth() + 1).padStart(2, "0") +
-				"-" +
-				String(today.getDate()).padStart(2, "0");
+		if (this.api && this.api.currentEmail) {
+			const val = this.state.intensity;
 			const tags = Array.from(
 				document.querySelectorAll(".injury-tag.selected"),
 			).map((el) => el.textContent);
 			const note =
 				document.querySelector(".injury-textarea")?.value || "";
-			this.api
-				.createRecord({
-					date,
-					intensity: this.state.intensity,
-					injury_tags: tags,
-					injury_note: note,
-				})
+			const intensityLabel =
+				val <= 3 ? "low" : val <= 6 ? "moderate" : val <= 8 ? "high" : "max";
+			const tasks = [
+				this.api.createCondition({
+					srpe: val,
+					compositeScore: Math.max(0, 100 - val * 5),
+					fatigue: val,
+				}),
+				this.api.createWorkout({
+					name: "일일 훈련",
+					srpe: val,
+					intensity: intensityLabel,
+				}),
+			];
+			for (const tag of tags) {
+				tasks.push(this.api.createInjury({ partName: tag, diagnosis: note }));
+			}
+			Promise.all(tasks)
 				.then(() => this.toast.show("오늘의 기록이 제출되었습니다"))
 				.catch((e) => this.toast.show(`제출 실패: ${e.message}`, true));
 			return;
