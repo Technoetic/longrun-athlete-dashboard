@@ -1,0 +1,513 @@
+{
+  "statistics": {
+    "detectionDate": "2026-04-14T12:42:17.504Z",
+    "formats": {
+      "javascript": {
+        "sources": {
+          "src/js/WatchSimulator.js": {
+            "lines": 41,
+            "tokens": 402,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/js/Toast.js": {
+            "lines": 11,
+            "tokens": 114,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/js/TeamCode.js": {
+            "lines": 28,
+            "tokens": 236,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/js/State.js": {
+            "lines": 13,
+            "tokens": 130,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/js/Signup.js": {
+            "lines": 80,
+            "tokens": 954,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/js/Router.js": {
+            "lines": 20,
+            "tokens": 195,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/js/Profile.js": {
+            "lines": 88,
+            "tokens": 877,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/js/PhoneVerify.js": {
+            "lines": 24,
+            "tokens": 256,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/js/Modal.js": {
+            "lines": 17,
+            "tokens": 216,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/js/Intensity.js": {
+            "lines": 67,
+            "tokens": 774,
+            "sources": 1,
+            "clones": 2,
+            "duplicatedLines": 14,
+            "duplicatedTokens": 146,
+            "percentage": 20.9,
+            "percentageTokens": 18.86,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/js/Injury.js": {
+            "lines": 4,
+            "tokens": 28,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/js/Home.js": {
+            "lines": 13,
+            "tokens": 126,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/js/Clock.js": {
+            "lines": 15,
+            "tokens": 148,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/js/AuthForm.js": {
+            "lines": 33,
+            "tokens": 405,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/js/app.js": {
+            "lines": 51,
+            "tokens": 931,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          }
+        },
+        "total": {
+          "lines": 505,
+          "tokens": 5792,
+          "sources": 15,
+          "clones": 1,
+          "duplicatedLines": 7,
+          "duplicatedTokens": 73,
+          "percentage": 1.39,
+          "percentageTokens": 1.26,
+          "newDuplicatedLines": 0,
+          "newClones": 0
+        }
+      },
+      "css": {
+        "sources": {
+          "src/css/utility.css": {
+            "lines": 24,
+            "tokens": 109,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/css/toast-modal.css": {
+            "lines": 68,
+            "tokens": 420,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/css/signup.css": {
+            "lines": 98,
+            "tokens": 708,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/css/profile.css": {
+            "lines": 20,
+            "tokens": 139,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/css/phone.css": {
+            "lines": 72,
+            "tokens": 491,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/css/onboarding.css": {
+            "lines": 102,
+            "tokens": 690,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/css/nav.css": {
+            "lines": 39,
+            "tokens": 265,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/css/home.css": {
+            "lines": 231,
+            "tokens": 1523,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/css/forms.css": {
+            "lines": 57,
+            "tokens": 377,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/css/buttons.css": {
+            "lines": 74,
+            "tokens": 527,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/css/base.css": {
+            "lines": 42,
+            "tokens": 234,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/css/auth.css": {
+            "lines": 81,
+            "tokens": 501,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          }
+        },
+        "total": {
+          "lines": 908,
+          "tokens": 5984,
+          "sources": 12,
+          "clones": 0,
+          "duplicatedLines": 0,
+          "duplicatedTokens": 0,
+          "percentage": 0,
+          "percentageTokens": 0,
+          "newDuplicatedLines": 0,
+          "newClones": 0
+        }
+      },
+      "markup": {
+        "sources": {
+          "src/index.html": {
+            "lines": 527,
+            "tokens": 7412,
+            "sources": 1,
+            "clones": 4,
+            "duplicatedLines": 34,
+            "duplicatedTokens": 482,
+            "percentage": 6.45,
+            "percentageTokens": 6.5,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          }
+        },
+        "total": {
+          "lines": 527,
+          "tokens": 7412,
+          "sources": 1,
+          "clones": 2,
+          "duplicatedLines": 17,
+          "duplicatedTokens": 241,
+          "percentage": 3.23,
+          "percentageTokens": 3.25,
+          "newDuplicatedLines": 0,
+          "newClones": 0
+        }
+      }
+    },
+    "total": {
+      "lines": 1940,
+      "tokens": 19188,
+      "sources": 28,
+      "clones": 3,
+      "duplicatedLines": 24,
+      "duplicatedTokens": 314,
+      "percentage": 1.24,
+      "percentageTokens": 1.64,
+      "newDuplicatedLines": 0,
+      "newClones": 0
+    }
+  },
+  "duplicates": [
+    {
+      "format": "javascript",
+      "lines": 8,
+      "fragment": ";\n\t\tdocument.querySelectorAll(\".intensity-btn\").forEach((b) => {\n\t\t\tb.classList.remove(\"selected\");\n\t\t\tb.style.background = \"\";\n\t\t\tb.style.borderColor = \"\";\n\t\t\tb.style.boxShadow = \"\";\n\t\t});\n\t\tdocument",
+      "tokens": 0,
+      "firstFile": {
+        "name": "src\\js\\Intensity.js",
+        "start": 41,
+        "end": 48,
+        "startLoc": {
+          "line": 41,
+          "column": 3,
+          "position": 483
+        },
+        "endLoc": {
+          "line": 48,
+          "column": 9,
+          "position": 556
+        }
+      },
+      "secondFile": {
+        "name": "src\\js\\Intensity.js",
+        "start": 12,
+        "end": 20,
+        "startLoc": {
+          "line": 12,
+          "column": 2,
+          "position": 130
+        },
+        "endLoc": {
+          "line": 20,
+          "column": 6,
+          "position": 204
+        }
+      }
+    },
+    {
+      "format": "markup",
+      "lines": 13,
+      "fragment": ">\n        <div class=\"form-group\">\n          <label class=\"form-label\">전화번호</label>\n          <div class=\"form-row\">\n            <input class=\"form-input\" type=\"tel\" placeholder=\"010-0000-0000\">\n            <button type=\"button\" class=\"btn-small\" onclick=\"showToast('인증번호가 발송되었습니다')\">인증</button>\n          </div>\n        </div>\n        <div class=\"form-group\">\n          <label class=\"form-label\">인증번호</label>\n          <input class=\"form-input\" type=\"text\" placeholder=\"인증번호 6자리\">\n        </div>\n        <button type=\"button\" class=\"btn-primary mt-16\" onclick=\"showToast('임시 비밀번호가 이메일로 발송되었습니다",
+      "tokens": 0,
+      "firstFile": {
+        "name": "src\\index.html",
+        "start": 153,
+        "end": 165,
+        "startLoc": {
+          "line": 153,
+          "column": 4,
+          "position": 1976
+        },
+        "endLoc": {
+          "line": 165,
+          "column": 22,
+          "position": 2154
+        }
+      },
+      "secondFile": {
+        "name": "src\\index.html",
+        "start": 133,
+        "end": 145,
+        "startLoc": {
+          "line": 133,
+          "column": 2,
+          "position": 1708
+        },
+        "endLoc": {
+          "line": 145,
+          "column": 26,
+          "position": 1886
+        }
+      }
+    },
+    {
+      "format": "markup",
+      "lines": 6,
+      "fragment": ">\n      </div>\n      <div class=\"form-group\">\n        <label class=\"form-label\">비밀번호</label>\n        <div class=\"input-wrapper\">\n          <input class=\"form-input\" type=\"password\" id=\"signPw",
+      "tokens": 0,
+      "firstFile": {
+        "name": "src\\index.html",
+        "start": 189,
+        "end": 194,
+        "startLoc": {
+          "line": 189,
+          "column": 4,
+          "position": 2480
+        },
+        "endLoc": {
+          "line": 194,
+          "column": 7,
+          "position": 2543
+        }
+      },
+      "secondFile": {
+        "name": "src\\index.html",
+        "start": 95,
+        "end": 100,
+        "startLoc": {
+          "line": 95,
+          "column": 2,
+          "position": 1245
+        },
+        "endLoc": {
+          "line": 100,
+          "column": 8,
+          "position": 1308
+        }
+      }
+    }
+  ]
+}

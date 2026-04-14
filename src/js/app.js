@@ -1,0 +1,52 @@
+(() => {
+	const state = new State();
+	const toast = new Toast("toast");
+	const modal = new Modal("modal", "modalTitle", "modalDesc", "modalActions");
+	const router = new Router();
+	const authForm = new AuthForm(state, router, toast);
+	const phoneVerify = new PhoneVerify(toast);
+	const signup = new Signup(state, router, toast);
+	const watchSim = new WatchSimulator(state);
+	const intensity = new Intensity(state, toast);
+	const injury = new Injury();
+	const teamCode = new TeamCode(state, modal, toast);
+	const home = new Home(state);
+	const profile = new Profile(state, router, modal, toast, intensity);
+	const clock = new Clock("statusTime");
+
+	router.on("home", () => home.init());
+	router.on("profile", () => profile.init());
+
+	window.goScreen = (id) => router.go(id);
+	window.showToast = (msg, isError) => toast.show(msg, isError);
+	window.togglePw = (id, btn) => authForm.togglePw(id, btn);
+	window.switchFindTab = (idx, el) => authForm.switchFindTab(idx, el);
+	window.handleLogin = () => authForm.handleLogin();
+	window.startPhoneVerify = () => phoneVerify.start();
+	window.confirmVerify = () => phoneVerify.confirm();
+	window.goSignup2 = () => signup.goSignup2();
+	window.goSignup3 = () => signup.goSignup3();
+	window.goSignup4 = () => signup.goSignup4();
+	window.toggleAgreement = (idx) => signup.toggleAgreement(idx);
+	window.toggleAllAgreements = () => signup.toggleAllAgreements();
+	window.selectSport = (el, name) => signup.selectSport(el, name);
+	window.codeNext = (el, idx) => signup.codeNext(el, idx);
+	window.completeSignup = () => signup.completeSignup();
+	window.toggleWatch = () => watchSim.toggle();
+	window.selectIntensity = (val, el) => intensity.select(val, el);
+	window.resetIntensity = () => intensity.reset();
+	window.submitDaily = () => intensity.submitDaily();
+	window.toggleInjuryTag = (el) => injury.toggleTag(el);
+	window.showTeamCodeModal = () => teamCode.showModal();
+	window.changeTeam = () => teamCode.change();
+	window.closeModal = () => modal.close();
+	window.handleProfilePhoto = (input) => profile.handlePhoto(input);
+	window.changeProfileName = () => profile.changeName();
+	window.copyAthleteCode = () => profile.copyAthleteCode();
+	window.showPolicyModal = (title) => profile.showPolicyModal(title);
+	window.handleLogout = () => profile.handleLogout();
+	window.confirmLogout = () => profile.confirmLogout();
+
+	clock.start();
+	intensity.scheduleMidnightReset();
+})();

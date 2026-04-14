@@ -1,0 +1,16 @@
+{
+  "name": "longrun-dashboard",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "coverage": "c8 --per-file --reporter=text vitest run"
+  },
+  "devDependencies": {
+    "vitest": "^2.1.0",
+    "jsdom": "^25.0.0",
+    "c8": "^10.1.0"
+  }
+}

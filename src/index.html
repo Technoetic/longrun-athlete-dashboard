@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LongRun 선수 대시보드</title>
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/phone.css">
+<link rel="stylesheet" href="css/buttons.css">
+<link rel="stylesheet" href="css/forms.css">
+<link rel="stylesheet" href="css/auth.css">
+<link rel="stylesheet" href="css/onboarding.css">
+<link rel="stylesheet" href="css/signup.css">
+<link rel="stylesheet" href="css/home.css">
+<link rel="stylesheet" href="css/nav.css">
+<link rel="stylesheet" href="css/toast-modal.css">
+<link rel="stylesheet" href="css/profile.css">
+<link rel="stylesheet" href="css/utility.css">
+</head>
+<body>
+
+<h1 class="visually-hidden">LongRun 선수 대시보드</h1>
+<main class="phone-frame" id="app" aria-label="LongRun 모바일 앱">
+  <div class="phone-notch"></div>
+  <div class="phone-status-bar">
+    <span id="statusTime">9:41</span>
+    <span>LTE &nbsp; 100%</span>
+  </div>
+  <div class="phone-home-indicator"></div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <!-- Modal -->
+  <div class="modal-overlay" id="modal">
+    <div class="modal-box">
+      <div class="modal-title" id="modalTitle"></div>
+      <div class="modal-desc" id="modalDesc"></div>
+      <div class="modal-actions" id="modalActions"></div>
+    </div>
+  </div>
+
+  <div class="screen-container">
+
+    <!-- ==================== ONBOARDING 1 ==================== -->
+    <div class="screen onboarding-screen active" id="screen-ob1">
+      <div class="onboarding-icon ob1-icon">W</div>
+      <div class="onboarding-title">실시간 생체 데이터</div>
+      <div class="onboarding-desc">스마트워치와 연동하여 심박수, 산소포화도 등<br>실시간 생체 데이터를 확인하세요</div>
+      <div class="dot-indicators">
+        <div class="dot active"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+      </div>
+      <button type="button" class="btn-primary" onclick="goScreen('ob2')" style="width:80%">다음</button>
+      <button type="button" class="btn-text mt-8" onclick="goScreen('login')">건너뛰기</button>
+    </div>
+
+    <!-- ==================== ONBOARDING 2 ==================== -->
+    <div class="screen onboarding-screen" id="screen-ob2">
+      <div class="onboarding-icon ob2-icon">R</div>
+      <div class="onboarding-title">운동 강도 관리</div>
+      <div class="onboarding-desc">매일 운동 강도를 기록하고<br>컨디션 변화를 한눈에 파악하세요</div>
+      <div class="dot-indicators">
+        <div class="dot"></div>
+        <div class="dot active"></div>
+        <div class="dot"></div>
+      </div>
+      <button type="button" class="btn-primary" onclick="goScreen('ob3')" style="width:80%">다음</button>
+      <button type="button" class="btn-text mt-8" onclick="goScreen('login')">건너뛰기</button>
+    </div>
+
+    <!-- ==================== ONBOARDING 3 ==================== -->
+    <div class="screen onboarding-screen" id="screen-ob3">
+      <div class="onboarding-icon ob3-icon">T</div>
+      <div class="onboarding-title">팀과 함께 성장</div>
+      <div class="onboarding-desc">팀 코드로 소속팀과 연결되어<br>코치진과 실시간으로 소통하세요</div>
+      <div class="dot-indicators">
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot active"></div>
+      </div>
+      <button type="button" class="btn-primary" onclick="goScreen('login')" style="width:80%">시작하기</button>
+    </div>
+
+    <!-- ==================== LOGIN ==================== -->
+    <div class="screen" id="screen-login">
+      <div class="auth-header">
+        <div class="auth-logo" style="font-size:28px;font-weight:800;letter-spacing:-1px">LR</div>
+        <div class="auth-title">LongRun</div>
+        <div class="auth-subtitle">선수 대시보드</div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">이메일</label>
+        <input class="form-input" type="email" id="loginEmail" placeholder="이메일을 입력하세요">
+      </div>
+      <div class="form-group">
+        <label class="form-label">비밀번호</label>
+        <div class="input-wrapper">
+          <input class="form-input" type="password" id="loginPw" placeholder="비밀번호를 입력하세요">
+          <button type="button" class="pw-toggle" onclick="togglePw('loginPw',this)">&#x2022;&#x2022;</button>
+        </div>
+      </div>
+
+      <button type="button" class="btn-primary mt-8" onclick="handleLogin()">로그인</button>
+
+      <div class="auth-links mt-16">
+        <button type="button" class="btn-text" onclick="goScreen('findAccount')">아이디/비번 찾기</button>
+        <span style="color:rgba(255,255,255,0.15)">|</span>
+        <button type="button" class="btn-text" onclick="goScreen('signup1')">회원가입</button>
+      </div>
+
+      <div class="auth-divider">또는</div>
+
+      <button type="button" class="btn-secondary" onclick="showToast('소셜 로그인은 준비 중입니다')">
+        소셜 계정으로 로그인
+      </button>
+    </div>
+
+    <!-- ==================== FIND ACCOUNT ==================== -->
+    <div class="screen" id="screen-findAccount">
+      <button type="button" class="back-btn" onclick="goScreen('login')">← 뒤로</button>
+      <div class="auth-header">
+        <div class="auth-title">계정 찾기</div>
+      </div>
+
+      <div class="tab-bar">
+        <div class="tab-item active" onclick="switchFindTab(0,this)">아이디 찾기</div>
+        <div class="tab-item" onclick="switchFindTab(1,this)">비밀번호 찾기</div>
+      </div>
+
+      <!-- Find ID -->
+      <div id="findTab0">
+        <div class="form-group">
+          <label class="form-label">전화번호</label>
+          <div class="form-row">
+            <input class="form-input" type="tel" placeholder="010-0000-0000">
+            <button type="button" class="btn-small" onclick="showToast('인증번호가 발송되었습니다')">인증</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">인증번호</label>
+          <input class="form-input" type="text" placeholder="인증번호 6자리">
+        </div>
+        <button type="button" class="btn-primary mt-16" onclick="showToast('등록된 이메일: user@example.com')">아이디 찾기</button>
+      </div>
+
+      <!-- Find PW -->
+      <div id="findTab1" style="display:none">
+        <div class="form-group">
+          <label class="form-label">이메일</label>
+          <input class="form-input" type="email" placeholder="가입한 이메일을 입력하세요">
+        </div>
+        <div class="form-group">
+          <label class="form-label">전화번호</label>
+          <div class="form-row">
+            <input class="form-input" type="tel" placeholder="010-0000-0000">
+            <button type="button" class="btn-small" onclick="showToast('인증번호가 발송되었습니다')">인증</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">인증번호</label>
+          <input class="form-input" type="text" placeholder="인증번호 6자리">
+        </div>
+        <button type="button" class="btn-primary mt-16" onclick="showToast('임시 비밀번호가 이메일로 발송되었습니다')">비밀번호 찾기</button>
+      </div>
+    </div>
+
+    <!-- ==================== SIGNUP STEP 1: 기본정보 ==================== -->
+    <div class="screen" id="screen-signup1">
+      <button type="button" class="back-btn" onclick="goScreen('login')">← 뒤로</button>
+      <div class="step-indicator">
+        <div class="step-dot active"></div>
+        <div class="step-dot"></div>
+        <div class="step-dot"></div>
+        <div class="step-dot"></div>
+      </div>
+      <div class="auth-title mb-16">기본 정보</div>
+
+      <div class="form-group">
+        <label class="form-label">닉네임</label>
+        <input class="form-input" type="text" id="signNick" placeholder="2~10자 닉네임">
+      </div>
+      <div class="form-group">
+        <label class="form-label">이메일</label>
+        <div class="form-row">
+          <input class="form-input" type="email" id="signEmail" placeholder="이메일 주소">
+          <button type="button" class="btn-small" onclick="showToast('사용 가능한 이메일입니다')">중복확인</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">비밀번호</label>
+        <div class="input-wrapper">
+          <input class="form-input" type="password" id="signPw" placeholder="영문+숫자+특수문자 8자 이상">
+          <button type="button" class="pw-toggle" onclick="togglePw('signPw',this)">&#x2022;&#x2022;</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">비밀번호 확인</label>
+        <div class="input-wrapper">
+          <input class="form-input" type="password" id="signPw2" placeholder="비밀번호 재입력">
+          <button type="button" class="pw-toggle" onclick="togglePw('signPw2',this)">&#x2022;&#x2022;</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">전화번호 인증</label>
+        <div class="form-row">
+          <input class="form-input" type="tel" id="signPhone" placeholder="010-0000-0000">
+          <button type="button" class="btn-small" onclick="startPhoneVerify()">인증요청</button>
+        </div>
+      </div>
+      <div class="form-group" id="verifyCodeGroup" style="display:none">
+        <div class="form-row">
+          <input class="form-input" type="text" id="signVerifyCode" placeholder="인증번호 6자리">
+          <button type="button" class="btn-small" onclick="confirmVerify()">확인</button>
+        </div>
+        <div style="font-size:12px;color:#ef4444;margin-top:4px" id="verifyTimer"></div>
+      </div>
+
+      <div class="spacer"></div>
+      <button type="button" class="btn-primary mt-16" onclick="goSignup2()">다음</button>
+    </div>
+
+    <!-- ==================== SIGNUP STEP 2: 동의서 ==================== -->
+    <div class="screen" id="screen-signup2">
+      <button type="button" class="back-btn" onclick="goScreen('signup1')">← 뒤로</button>
+      <div class="step-indicator">
+        <div class="step-dot done"></div>
+        <div class="step-dot active"></div>
+        <div class="step-dot"></div>
+        <div class="step-dot"></div>
+      </div>
+      <div class="auth-title mb-16">서비스 이용 동의</div>
+
+      <div class="agreement-box">
+        <div class="agreement-item all" onclick="toggleAllAgreements()">
+          <div class="check-circle" id="agreeAll">&#10003;</div>
+          <span>전체 동의</span>
+        </div>
+        <div class="agreement-item" onclick="toggleAgreement(0)">
+          <div class="check-circle" data-agree="0">&#10003;</div>
+          <span>[필수] 서비스 이용약관</span>
+        </div>
+        <div class="agreement-item" onclick="toggleAgreement(1)">
+          <div class="check-circle" data-agree="1">&#10003;</div>
+          <span>[필수] 개인정보 수집 및 이용</span>
+        </div>
+        <div class="agreement-item" onclick="toggleAgreement(2)">
+          <div class="check-circle" data-agree="2">&#10003;</div>
+          <span>[필수] 건강정보 제3자 제공</span>
+        </div>
+        <div class="agreement-item" onclick="toggleAgreement(3)">
+          <div class="check-circle" data-agree="3">&#10003;</div>
+          <span>[필수] 위치정보 이용약관</span>
+        </div>
+        <div class="agreement-item" onclick="toggleAgreement(4)">
+          <div class="check-circle" data-agree="4">&#10003;</div>
+          <span>[선택] 마케팅 정보 수신</span>
+        </div>
+      </div>
+
+      <div class="spacer"></div>
+      <button type="button" class="btn-primary mt-16" onclick="goSignup3()">다음</button>
+    </div>
+
+    <!-- ==================== SIGNUP STEP 3: 운동종목 ==================== -->
+    <div class="screen" id="screen-signup3">
+      <button type="button" class="back-btn" onclick="goScreen('signup2')">← 뒤로</button>
+      <div class="step-indicator">
+        <div class="step-dot done"></div>
+        <div class="step-dot done"></div>
+        <div class="step-dot active"></div>
+        <div class="step-dot"></div>
+      </div>
+      <div class="auth-title mb-16">운동 종목 선택</div>
+      <div style="font-size:13px;color:rgba(255,255,255,0.4);margin-bottom:20px">주 종목을 선택해주세요</div>
+
+      <div class="sport-grid">
+        <div class="sport-card" onclick="selectSport(this,'철인3종')"><div class="icon">TRI</div><div class="label">철인3종</div></div>
+        <div class="sport-card" onclick="selectSport(this,'봅슬레이')"><div class="icon">BOB</div><div class="label">봅슬레이</div></div>
+        <div class="sport-card" onclick="selectSport(this,'스켈레톤')"><div class="icon">SKL</div><div class="label">스켈레톤</div></div>
+        <div class="sport-card" onclick="selectSport(this,'태권도')"><div class="icon">TKD</div><div class="label">태권도</div></div>
+        <div class="sport-card" onclick="selectSport(this,'축구')"><div class="icon">FC</div><div class="label">축구</div></div>
+      </div>
+
+      <div class="spacer"></div>
+      <button type="button" class="btn-primary mt-16" onclick="goSignup4()">다음</button>
+    </div>
+
+    <!-- ==================== SIGNUP STEP 4: 팀코드 ==================== -->
+    <div class="screen" id="screen-signup4" style="align-items:center;text-align:center">
+      <button type="button" class="back-btn" onclick="goScreen('signup3')" style="align-self:flex-start">← 뒤로</button>
+      <div class="step-indicator">
+        <div class="step-dot done"></div>
+        <div class="step-dot done"></div>
+        <div class="step-dot done"></div>
+        <div class="step-dot active"></div>
+      </div>
+      <div class="auth-title mb-16">팀 코드 입력</div>
+      <div style="font-size:13px;color:rgba(255,255,255,0.4);margin-bottom:8px">코치에게 받은 팀 코드를 입력하세요</div>
+
+      <div class="team-code-input">
+        <input class="code-box" maxlength="1" oninput="codeNext(this,0)" id="tc0">
+        <input class="code-box" maxlength="1" oninput="codeNext(this,1)" id="tc1">
+        <input class="code-box" maxlength="1" oninput="codeNext(this,2)" id="tc2">
+        <input class="code-box" maxlength="1" oninput="codeNext(this,3)" id="tc3">
+        <input class="code-box" maxlength="1" oninput="codeNext(this,4)" id="tc4">
+        <input class="code-box" maxlength="1" oninput="codeNext(this,5)" id="tc5">
+      </div>
+
+      <div style="font-size:12px;color:rgba(255,255,255,0.3);margin-bottom:32px">팀 코드가 없으면 건너뛸 수 있습니다</div>
+
+      <button type="button" class="btn-primary" onclick="completeSignup()" style="width:80%">가입 완료</button>
+      <button type="button" class="btn-text mt-8" onclick="completeSignup()">나중에 입력하기</button>
+    </div>
+
+    <!-- ==================== WELCOME ==================== -->
+    <div class="screen welcome-screen" id="screen-welcome">
+      <div class="welcome-badge" style="font-size:36px;font-weight:800">LR</div>
+      <div class="welcome-name" id="welcomeName">환영합니다!</div>
+      <div class="welcome-msg">
+        LongRun 선수 대시보드에 오신 것을 환영합니다.<br>
+        지금부터 더 스마트한 훈련을 시작하세요!
+      </div>
+      <div class="welcome-code-display">
+        <div class="welcome-code-label">나의 선수 고유코드</div>
+        <div class="welcome-code-value" id="athleteCode">LR-0000</div>
+      </div>
+      <button type="button" class="btn-primary" onclick="goScreen('home')" style="width:80%">시작하기</button>
+    </div>
+
+    <!-- ==================== HOME ==================== -->
+    <div class="screen home-screen" id="screen-home" style="padding-bottom:90px">
+      <div class="home-header">
+        <div>
+          <div class="home-greeting">안녕하세요</div>
+          <div class="home-name" id="homeName">선수님</div>
+        </div>
+        <div class="home-avatar" style="font-size:14px;font-weight:700;cursor:pointer" onclick="goScreen('profile')" id="homeAvatar">P</div>
+      </div>
+
+      <!-- Watch Connection -->
+      <div class="watch-card" onclick="toggleWatch()">
+        <div class="watch-card-header">
+          <div class="watch-card-title">스마트워치</div>
+          <div class="watch-status disconnected" id="watchStatus">
+            <div class="dot-indicator"></div>
+            <span>연결 안됨</span>
+          </div>
+        </div>
+        <div class="watch-metrics" id="watchMetrics" style="display:none">
+          <div class="watch-metric">
+            <div class="watch-metric-label">심박수</div>
+            <div class="watch-metric-value" id="hrValue">--</div>
+            <div class="watch-metric-unit">BPM</div>
+          </div>
+          <div class="watch-metric">
+            <div class="watch-metric-label">산소포화도</div>
+            <div class="watch-metric-value" id="spo2Value">--</div>
+            <div class="watch-metric-unit">%</div>
+          </div>
+          <div class="watch-metric">
+            <div class="watch-metric-label">체온</div>
+            <div class="watch-metric-value" id="tempValue">--</div>
+            <div class="watch-metric-unit">°C</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Intensity -->
+      <div class="section-card">
+        <div class="section-title" style="justify-content:space-between">
+          <span>오늘의 운동 강도</span>
+          <button type="button" class="btn-small" id="intensityResetBtn" style="display:none" onclick="resetIntensity()">다시 선택</button>
+        </div>
+        <div id="intensitySelector">
+          <div class="intensity-grid">
+            <button type="button" class="intensity-btn" onclick="selectIntensity(1,this)" style="--c:#4ade80">1</button>
+            <button type="button" class="intensity-btn" onclick="selectIntensity(2,this)" style="--c:#6ee7a0">2</button>
+            <button type="button" class="intensity-btn" onclick="selectIntensity(3,this)" style="--c:#a3e635">3</button>
+            <button type="button" class="intensity-btn" onclick="selectIntensity(4,this)" style="--c:#facc15">4</button>
+            <button type="button" class="intensity-btn" onclick="selectIntensity(5,this)" style="--c:#fbbf24">5</button>
+            <button type="button" class="intensity-btn" onclick="selectIntensity(6,this)" style="--c:#fb923c">6</button>
+            <button type="button" class="intensity-btn" onclick="selectIntensity(7,this)" style="--c:#f97316">7</button>
+            <button type="button" class="intensity-btn" onclick="selectIntensity(8,this)" style="--c:#ef4444">8</button>
+            <button type="button" class="intensity-btn" onclick="selectIntensity(9,this)" style="--c:#dc2626">9</button>
+            <button type="button" class="intensity-btn" onclick="selectIntensity(10,this)" style="--c:#b91c1c">10</button>
+          </div>
+          <div class="intensity-label">
+            <span>가벼움</span>
+            <span>보통</span>
+            <span>매우 힘듦</span>
+          </div>
+        </div>
+        <div id="intensityResult" style="display:none;text-align:center;padding:12px 0">
+          <div style="font-size:40px;font-weight:800;margin-bottom:4px" id="intensityResultValue">-</div>
+          <div style="font-size:12px;color:rgba(255,255,255,0.4)" id="intensityResultTime">선택 시간: --:--</div>
+        </div>
+      </div>
+
+      <!-- Injury -->
+      <div class="section-card">
+        <div class="section-title">부상 내용</div>
+        <div class="injury-tags">
+          <span class="injury-tag" onclick="toggleInjuryTag(this)">무릎</span>
+          <span class="injury-tag" onclick="toggleInjuryTag(this)">발목</span>
+          <span class="injury-tag" onclick="toggleInjuryTag(this)">어깨</span>
+          <span class="injury-tag" onclick="toggleInjuryTag(this)">허리</span>
+          <span class="injury-tag" onclick="toggleInjuryTag(this)">손목</span>
+          <span class="injury-tag" onclick="toggleInjuryTag(this)">햄스트링</span>
+        </div>
+        <textarea class="injury-textarea" placeholder="부상 상세 내용을 입력하세요...&#10;예) 왼쪽 무릎 안쪽 통증, 달리기 시 악화"></textarea>
+      </div>
+
+      <!-- Team Code -->
+      <div class="section-card">
+        <div class="section-title">소속 팀</div>
+        <div class="team-info">
+          <div class="team-badge">
+            <div class="team-icon" style="font-size:16px;font-weight:800">T</div>
+            <div>
+              <div class="team-name" id="homeTeamName">팀 미등록</div>
+              <div class="team-code-display" id="homeTeamCode">-</div>
+            </div>
+          </div>
+          <button type="button" class="btn-small" onclick="showTeamCodeModal()">변경</button>
+        </div>
+      </div>
+
+      <!-- Submit -->
+      <div class="submit-bar">
+        <button type="button" class="btn-primary" onclick="submitDaily()">오늘의 기록 제출</button>
+      </div>
+
+      <!-- Bottom Navigation -->
+      <div class="bottom-nav">
+        <button type="button" class="nav-item active"><div class="nav-icon nav-svg"><svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20" role="img" aria-label="홈"><title>홈</title><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0a1 1 0 01-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1h-2z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>홈</button>
+      </div>
+    </div>
+
+    <!-- ==================== PROFILE ==================== -->
+    <div class="screen" id="screen-profile" style="padding-bottom:40px">
+      <button type="button" class="back-btn" onclick="goScreen('home')">← 뒤로</button>
+      <div style="text-align:center;margin-bottom:28px">
+        <div style="position:relative;display:inline-block">
+          <div id="profileAvatar" style="width:88px;height:88px;border-radius:44px;background:linear-gradient(135deg,#667eea,#764ba2);display:flex;justify-content:center;align-items:center;font-size:28px;font-weight:700;margin:0 auto;overflow:hidden;cursor:pointer" onclick="document.getElementById('profilePhotoInput').click()">
+            <span id="profileAvatarText">P</span>
+            <img id="profileAvatarImg" alt="프로필 사진" style="width:100%;height:100%;object-fit:cover;display:none;position:absolute;inset:0">
+          </div>
+          <div style="position:absolute;bottom:0;right:0;width:28px;height:28px;border-radius:14px;background:#667eea;display:flex;justify-content:center;align-items:center;cursor:pointer;border:3px solid #0f0f1a" onclick="document.getElementById('profilePhotoInput').click()">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" role="img" aria-label="사진 변경"><title>사진 변경</title><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
+          </div>
+          <input type="file" id="profilePhotoInput" accept="image/*" style="display:none" onchange="handleProfilePhoto(this)">
+        </div>
+        <div style="font-size:18px;font-weight:700;margin-top:12px" id="profileName">선수님</div>
+      </div>
+
+      <!-- 이름 변경 -->
+      <div class="section-card">
+        <div class="section-title">이름 변경</div>
+        <div class="form-row">
+          <input class="form-input" type="text" id="profileNickInput" placeholder="새 이름 입력">
+          <button type="button" class="btn-small" onclick="changeProfileName()">변경</button>
+        </div>
+      </div>
+
+      <!-- 선수 고유코드 -->
+      <div class="section-card">
+        <div class="section-title">선수 고유코드</div>
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div style="font-size:20px;font-weight:700;letter-spacing:3px;color:#667eea" id="profileAthleteCode">LR-0000</div>
+          <button type="button" class="btn-small" onclick="copyAthleteCode()">복사</button>
+        </div>
+      </div>
+
+      <!-- 동의 서비스 목록 -->
+      <div class="section-card">
+        <div class="section-title">약관 및 정책</div>
+        <div class="policy-list">
+          <div class="policy-item" onclick="showPolicyModal('서비스 이용약관')">
+            <span>서비스 이용약관</span>
+            <span style="color:rgba(255,255,255,0.3);font-size:14px">></span>
+          </div>
+          <div class="policy-item" onclick="showPolicyModal('개인정보 수집 및 이용')">
+            <span>개인정보 수집 및 이용</span>
+            <span style="color:rgba(255,255,255,0.3);font-size:14px">></span>
+          </div>
+          <div class="policy-item" onclick="showPolicyModal('건강정보 제3자 제공')">
+            <span>건강정보 제3자 제공</span>
+            <span style="color:rgba(255,255,255,0.3);font-size:14px">></span>
+          </div>
+          <div class="policy-item" onclick="showPolicyModal('위치정보 이용약관')">
+            <span>위치정보 이용약관</span>
+            <span style="color:rgba(255,255,255,0.3);font-size:14px">></span>
+          </div>
+          <div class="policy-item" onclick="showPolicyModal('마케팅 정보 수신')">
+            <span>마케팅 정보 수신</span>
+            <span style="color:rgba(255,255,255,0.3);font-size:14px">></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 로그아웃 -->
+      <button type="button" class="btn-secondary" style="margin-top:16px;border-color:rgba(239,68,68,0.3);color:#ef4444" onclick="handleLogout()">로그아웃</button>
+    </div>
+
+  </div><!-- /screen-container -->
+</main><!-- /phone-frame -->
+
+<script src="js/State.js"></script>
+<script src="js/Toast.js"></script>
+<script src="js/Modal.js"></script>
+<script src="js/Router.js"></script>
+<script src="js/AuthForm.js"></script>
+<script src="js/PhoneVerify.js"></script>
+<script src="js/Signup.js"></script>
+<script src="js/WatchSimulator.js"></script>
+<script src="js/Intensity.js"></script>
+<script src="js/Injury.js"></script>
+<script src="js/TeamCode.js"></script>
+<script src="js/Home.js"></script>
+<script src="js/Profile.js"></script>
+<script src="js/Clock.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
+</content>
+</invoke>

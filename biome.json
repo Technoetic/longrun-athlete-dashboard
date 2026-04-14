@@ -1,0 +1,20 @@
+{
+	"$schema": "https://biomejs.dev/schemas/2.0.0/schema.json",
+	"linter": {
+		"rules": {
+			"correctness": {
+				"noUnusedVariables": "off"
+			},
+			"style": {
+				"useTemplate": "off"
+			},
+			"suspicious": {
+				"noAssignInExpressions": "off",
+				"noGlobalIsNan": "off"
+			}
+		}
+	},
+	"files": {
+		"includes": ["src/**"]
+	}
+}

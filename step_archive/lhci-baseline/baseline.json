@@ -1,0 +1,13 @@
+{
+  "timestamp": "2026-04-14T21:48:00+09:00",
+  "tool": "direct-metrics (lhci unavailable)",
+  "target": "dist/index.html (file://)",
+  "metrics": {
+    "bundle_bytes": 50951,
+    "external_requests": 1,
+    "css_blocks_inlined": 12,
+    "js_blocks_inlined": 15,
+    "page_errors": 0
+  },
+  "notes": "Lighthouse CI 미설치. file:// 환경에서는 LCP/CLS/INP 등이 의미 없으므로 직접 측정 가능한 정량 지표만 기록."
+}

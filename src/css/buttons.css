@@ -1,0 +1,75 @@
+.btn-primary {
+	width: 100%;
+	padding: 16px;
+	border: none;
+	border-radius: 14px;
+	background: linear-gradient(135deg, #667eea, #764ba2);
+	color: #fff;
+	font-size: 16px;
+	font-weight: 600;
+	cursor: pointer;
+	transition: all 0.2s;
+	margin-top: 8px;
+}
+.btn-primary:hover {
+	transform: translateY(-1px);
+	box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
+}
+.btn-primary:active {
+	transform: scale(0.98);
+}
+.btn-secondary {
+	width: 100%;
+	padding: 16px;
+	border: 2px solid rgba(255, 255, 255, 0.15);
+	border-radius: 14px;
+	background: transparent;
+	color: #fff;
+	font-size: 16px;
+	font-weight: 600;
+	cursor: pointer;
+	transition: all 0.2s;
+}
+.btn-secondary:hover {
+	border-color: #667eea;
+	background: rgba(102, 126, 234, 0.1);
+}
+.btn-small {
+	padding: 10px 20px;
+	border: none;
+	border-radius: 10px;
+	background: rgba(102, 126, 234, 0.2);
+	color: #667eea;
+	font-size: 13px;
+	font-weight: 600;
+	cursor: pointer;
+	transition: all 0.2s;
+}
+.btn-small:hover {
+	background: rgba(102, 126, 234, 0.3);
+}
+.btn-text {
+	background: none;
+	border: none;
+	color: rgba(255, 255, 255, 0.5);
+	font-size: 13px;
+	cursor: pointer;
+}
+.btn-text:hover {
+	color: #fff;
+}
+
+.back-btn {
+	background: none;
+	border: none;
+	color: rgba(255, 255, 255, 0.5);
+	font-size: 20px;
+	cursor: pointer;
+	padding: 4px 8px;
+	margin-bottom: 12px;
+	transition: color 0.2s;
+	align-self: flex-start;
+}
+.back-btn:hover {
+	color: #fff;
+}
