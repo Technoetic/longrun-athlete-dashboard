@@ -119,6 +119,8 @@ class WebActivity : AppCompatActivity() {
 	/**
 	 * 쿠키가 있고 email을 획득 가능하면 Health Connect 권한 확인 → 동기화 실행.
 	 * 권한이 없으면 요청 다이얼로그 오픈.
+	 * email 획득 성공 시 SharedPreferences + WebView 쿠키 문자열 캐시 + SyncWorker
+	 * 자동 enqueue 하여 백그라운드/잠금 상태에서도 주기 sync 가 이어지도록 한다.
 	 */
 	private fun triggerSyncIfReady() {
 		val cookie = CookieManager.getInstance().getCookie(BACKEND) ?: return
@@ -136,7 +138,20 @@ class WebActivity : AppCompatActivity() {
 
 			val email = fetchEmailFromBackend()
 			if (email.isNullOrBlank()) return@launch
-			prefs.edit().putString("email", email).apply()
+			prefs.edit()
+				.putString("email", email)
+				.putString("cookie", cookie)
+				.apply()
+
+			// 백그라운드 주기 sync 를 한 번만 enqueue (unique, UPDATE 정책)
+			if (!prefs.getBoolean("bg_enqueued", false)) {
+				SyncWorker.enqueue(applicationContext)
+				prefs.edit()
+					.putBoolean("bg_enqueued", true)
+					.putBoolean("bg", true)
+					.apply()
+				android.util.Log.d("LongRun", "periodic SyncWorker enqueued")
+			}
 
 			val result = withContext(Dispatchers.IO) {
 				HealthBridge.syncOnce(this@WebActivity, email)

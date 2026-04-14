@@ -8,6 +8,9 @@ import androidx.work.NetworkType
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
+import org.json.JSONObject
+import java.net.HttpURLConnection
+import java.net.URL
 import java.util.concurrent.TimeUnit
 
 class SyncWorker(
@@ -20,7 +23,17 @@ class SyncWorker(
 			"longrun",
 			Context.MODE_PRIVATE,
 		)
-		val email = prefs.getString("email", "") ?: ""
+		var email = prefs.getString("email", "") ?: ""
+		val cookie = prefs.getString("cookie", "") ?: ""
+
+		// email 이 없지만 쿠키가 있으면 백엔드에서 email 재조회 (fallback)
+		if (email.isBlank() && cookie.isNotBlank()) {
+			email = fetchEmailWithCookie(cookie) ?: ""
+			if (email.isNotBlank()) {
+				prefs.edit().putString("email", email).apply()
+			}
+		}
+
 		if (email.isBlank()) return Result.failure()
 
 		val msg = HealthBridge.syncOnce(applicationContext, email)
@@ -28,11 +41,32 @@ class SyncWorker(
 			.putString("last_sync_result", msg)
 			.putLong("last_sync_at", System.currentTimeMillis())
 			.apply()
+		android.util.Log.d("LongRun", "periodic sync: $msg")
 
 		return if (msg.startsWith("OK") || msg.startsWith("SKIP")) {
 			Result.success()
 		} else {
 			Result.retry()
+		}
+	}
+
+	private fun fetchEmailWithCookie(cookie: String): String? {
+		return try {
+			val url = URL("${HealthBridge.BACKEND}/api/user/me")
+			val conn = url.openConnection() as HttpURLConnection
+			conn.requestMethod = "GET"
+			conn.setRequestProperty("Cookie", cookie)
+			conn.connectTimeout = 10000
+			conn.readTimeout = 10000
+			if (conn.responseCode != 200) {
+				conn.disconnect()
+				return null
+			}
+			val body = conn.inputStream.bufferedReader().use { it.readText() }
+			conn.disconnect()
+			JSONObject(body).optString("email", null as String?)
+		} catch (_: Exception) {
+			null
 		}
 	}
 
