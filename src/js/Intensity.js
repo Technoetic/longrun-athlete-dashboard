@@ -1,7 +1,8 @@
 class Intensity {
-	constructor(state, toast) {
+	constructor(state, toast, api) {
 		this.state = state;
 		this.toast = toast;
+		this.api = api || null;
 	}
 	select(val, el) {
 		this.state.intensity = val;
@@ -63,6 +64,30 @@ class Intensity {
 	submitDaily() {
 		if (!this.state.intensity)
 			return this.toast.show("운동 강도를 선택하세요", true);
+		if (this.api && this.api.token) {
+			const today = new Date();
+			const date =
+				today.getFullYear() +
+				"-" +
+				String(today.getMonth() + 1).padStart(2, "0") +
+				"-" +
+				String(today.getDate()).padStart(2, "0");
+			const tags = Array.from(
+				document.querySelectorAll(".injury-tag.selected"),
+			).map((el) => el.textContent);
+			const note =
+				document.querySelector(".injury-textarea")?.value || "";
+			this.api
+				.createRecord({
+					date,
+					intensity: this.state.intensity,
+					injury_tags: tags,
+					injury_note: note,
+				})
+				.then(() => this.toast.show("오늘의 기록이 제출되었습니다"))
+				.catch((e) => this.toast.show(`제출 실패: ${e.message}`, true));
+			return;
+		}
 		this.toast.show("오늘의 기록이 제출되었습니다");
 	}
 }

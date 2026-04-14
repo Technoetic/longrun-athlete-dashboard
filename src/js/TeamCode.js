@@ -1,8 +1,9 @@
 class TeamCode {
-	constructor(state, modal, toast) {
+	constructor(state, modal, toast, api) {
 		this.state = state;
 		this.modal = modal;
 		this.toast = toast;
+		this.api = api || null;
 	}
 	showModal() {
 		this.modal.open({
@@ -25,5 +26,10 @@ class TeamCode {
 		document.getElementById("homeTeamCode").textContent = code;
 		this.modal.close();
 		this.toast.show("팀이 변경되었습니다");
+		if (this.api && this.api.token) {
+			this.api
+				.joinTeam({ team_code: code })
+				.catch((e) => this.toast.show(`팀 동기화 실패: ${e.message}`, true));
+		}
 	}
 }

@@ -1,8 +1,11 @@
 class Signup {
-	constructor(state, router, toast) {
+	constructor(state, router, toast, api) {
 		this.state = state;
 		this.router = router;
 		this.toast = toast;
+		this.api = api || null;
+		this.signEmail = "";
+		this.signPw = "";
 	}
 
 	goSignup2() {
@@ -17,6 +20,8 @@ class Signup {
 		if (pw !== pw2)
 			return this.toast.show("비밀번호가 일치하지 않습니다", true);
 		this.state.nickname = nick;
+		this.signEmail = email;
+		this.signPw = pw;
 		this.router.go("signup2");
 	}
 
@@ -73,9 +78,34 @@ class Signup {
 		this.state.teamCode = this.getTeamCode();
 		const rand = Math.floor(1000 + Math.random() * 9000);
 		this.state.athleteCode = "LR-" + rand;
-		document.getElementById("welcomeName").textContent =
-			this.state.nickname + "님, 환영합니다!";
-		document.getElementById("athleteCode").textContent = this.state.athleteCode;
-		this.router.go("welcome");
+
+		const showWelcome = () => {
+			document.getElementById("welcomeName").textContent =
+				this.state.nickname + "님, 환영합니다!";
+			document.getElementById("athleteCode").textContent = this.state.athleteCode;
+			this.router.go("welcome");
+		};
+
+		if (this.api && this.signEmail && this.signPw) {
+			this.api
+				.signup({
+					email: this.signEmail,
+					password: this.signPw,
+					nickname: this.state.nickname,
+					sport: this.state.sport || null,
+					team_code: this.state.teamCode || null,
+				})
+				.then((data) => {
+					this.api.setToken(data.access_token);
+					return this.api.me();
+				})
+				.then((user) => {
+					this.state.athleteCode = user.athlete_code;
+					showWelcome();
+				})
+				.catch((e) => this.toast.show(`가입 실패: ${e.message}`, true));
+			return;
+		}
+		showWelcome();
 	}
 }

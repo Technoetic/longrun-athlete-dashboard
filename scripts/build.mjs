@@ -1,4 +1,10 @@
-import { readFileSync, writeFileSync, mkdirSync, statSync } from "node:fs";
+import {
+	readFileSync,
+	writeFileSync,
+	mkdirSync,
+	statSync,
+	readdirSync,
+} from "node:fs";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -64,40 +70,11 @@ const distSize = statSync(outPath).size;
 
 let cssTotal = 0;
 let jsTotal = 0;
-for (const f of [
-	"base.css",
-	"phone.css",
-	"buttons.css",
-	"forms.css",
-	"auth.css",
-	"onboarding.css",
-	"signup.css",
-	"home.css",
-	"nav.css",
-	"toast-modal.css",
-	"profile.css",
-	"utility.css",
-]) {
-	cssTotal += statSync(resolve(srcDir, "css", f)).size;
+for (const f of readdirSync(resolve(srcDir, "css"))) {
+	if (f.endsWith(".css")) cssTotal += statSync(resolve(srcDir, "css", f)).size;
 }
-for (const f of [
-	"State.js",
-	"Toast.js",
-	"Modal.js",
-	"Router.js",
-	"AuthForm.js",
-	"PhoneVerify.js",
-	"Signup.js",
-	"WatchSimulator.js",
-	"Intensity.js",
-	"Injury.js",
-	"TeamCode.js",
-	"Home.js",
-	"Profile.js",
-	"Clock.js",
-	"app.js",
-]) {
-	jsTotal += statSync(resolve(srcDir, "js", f)).size;
+for (const f of readdirSync(resolve(srcDir, "js"))) {
+	if (f.endsWith(".js")) jsTotal += statSync(resolve(srcDir, "js", f)).size;
 }
 
 const stats = {

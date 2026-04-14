@@ -3,3 +3,11 @@ coverage/
 report/
 .DS_Store
 *.log
+
+# Python
+backend/.venv/
+backend/**/__pycache__/
+backend/**/*.pyc
+backend/*.db
+backend/.pytest_cache/
+backend/**/.pytest_cache/

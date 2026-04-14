@@ -451,6 +451,64 @@ this.watchInterval = null;
 this.profilePhoto = "";
 }
 }</script>
+<script>class Api {
+constructor(baseUrl) {
+this.baseUrl = baseUrl || "";
+this.token = null;
+}
+setToken(token) {
+this.token = token;
+}
+_headers() {
+const h = { "Content-Type": "application/json" };
+if (this.token) h.Authorization = `Bearer ${this.token}`;
+return h;
+}
+async _request(method, path, body) {
+const res = await fetch(`${this.baseUrl}${path}`, {
+method,
+headers: this._headers(),
+body: body ? JSON.stringify(body) : undefined,
+});
+if (!res.ok) {
+let detail = res.statusText;
+try {
+const data = await res.json();
+detail = data.detail || detail;
+} catch (_) {}
+throw new Error(`${res.status}: ${detail}`);
+}
+if (res.status === 204) return null;
+return res.json();
+}
+signup(payload) {
+return this._request("POST", "/api/auth/signup", payload);
+}
+login(payload) {
+return this._request("POST", "/api/auth/login", payload);
+}
+me() {
+return this._request("GET", "/api/auth/me");
+}
+createRecord(payload) {
+return this._request("POST", "/api/records", payload);
+}
+listRecords() {
+return this._request("GET", "/api/records");
+}
+postWatchMetric(payload) {
+return this._request("POST", "/api/watch/metrics", payload);
+}
+latestWatchMetric() {
+return this._request("GET", "/api/watch/latest");
+}
+joinTeam(payload) {
+return this._request("POST", "/api/team/join", payload);
+}
+myTeam() {
+return this._request("GET", "/api/team/me");
+}
+}</script>
 <script>class Toast {
 constructor(elementId) {
 this.el = document.getElementById(elementId);
@@ -503,10 +561,11 @@ el.style.animation = "";
 }
 }</script>
 <script>class AuthForm {
-constructor(state, router, toast) {
+constructor(state, router, toast, api) {
 this.state = state;
 this.router = router;
 this.toast = toast;
+this.api = api || null;
 }
 togglePw(id, btn) {
 const inp = document.getElementById(id);
@@ -533,6 +592,22 @@ if (!email || !pw)
 return this.toast.show("이메일과 비밀번호를 입력하세요", true);
 this.state.nickname = email.split("@")[0];
 this.state.athleteCode = "LR-" + Math.floor(1000 + Math.random() * 9000);
+if (this.api) {
+this.api
+.login({ email, password: pw })
+.then((data) => {
+this.api.setToken(data.access_token);
+return this.api.me();
+})
+.then((user) => {
+this.state.nickname = user.nickname;
+this.state.athleteCode = user.athlete_code;
+if (user.team_code) this.state.teamCode = user.team_code;
+this.router.go("home");
+})
+.catch((e) => this.toast.show(`로그인 실패: ${e.message}`, true));
+return;
+}
 this.router.go("home");
 }
 }</script>
@@ -562,10 +637,13 @@ this.toast.show("전화번호가 인증되었습니다");
 }
 }</script>
 <script>class Signup {
-constructor(state, router, toast) {
+constructor(state, router, toast, api) {
 this.state = state;
 this.router = router;
 this.toast = toast;
+this.api = api || null;
+this.signEmail = "";
+this.signPw = "";
 }
 goSignup2() {
 const nick = document.getElementById("signNick").value.trim();
@@ -579,6 +657,8 @@ return this.toast.show("비밀번호 8자 이상 입력하세요", true);
 if (pw !== pw2)
 return this.toast.show("비밀번호가 일치하지 않습니다", true);
 this.state.nickname = nick;
+this.signEmail = email;
+this.signPw = pw;
 this.router.go("signup2");
 }
 toggleAgreement(idx) {
@@ -631,15 +711,39 @@ completeSignup() {
 this.state.teamCode = this.getTeamCode();
 const rand = Math.floor(1000 + Math.random() * 9000);
 this.state.athleteCode = "LR-" + rand;
+const showWelcome = () => {
 document.getElementById("welcomeName").textContent =
 this.state.nickname + "님, 환영합니다!";
 document.getElementById("athleteCode").textContent = this.state.athleteCode;
 this.router.go("welcome");
+};
+if (this.api && this.signEmail && this.signPw) {
+this.api
+.signup({
+email: this.signEmail,
+password: this.signPw,
+nickname: this.state.nickname,
+sport: this.state.sport || null,
+team_code: this.state.teamCode || null,
+})
+.then((data) => {
+this.api.setToken(data.access_token);
+return this.api.me();
+})
+.then((user) => {
+this.state.athleteCode = user.athlete_code;
+showWelcome();
+})
+.catch((e) => this.toast.show(`가입 실패: ${e.message}`, true));
+return;
+}
+showWelcome();
 }
 }</script>
 <script>class WatchSimulator {
-constructor(state) {
+constructor(state, api) {
 this.state = state;
+this.api = api || null;
 }
 toggle() {
 this.state.watchConnected = !this.state.watchConnected;
@@ -664,25 +768,27 @@ document.getElementById("tempValue").textContent = "--";
 }
 simulate() {
 const update = () => {
-document.getElementById("hrValue").textContent = Math.floor(
-65 + Math.random() * 30,
-);
-document.getElementById("spo2Value").textContent = Math.floor(
-96 + Math.random() * 4,
-);
-document.getElementById("tempValue").textContent = (
-36.2 +
-Math.random() * 0.8
-).toFixed(1);
+const hr = Math.floor(65 + Math.random() * 30);
+const spo2 = Math.floor(96 + Math.random() * 4);
+const temp = Number((36.2 + Math.random() * 0.8).toFixed(1));
+document.getElementById("hrValue").textContent = hr;
+document.getElementById("spo2Value").textContent = spo2;
+document.getElementById("tempValue").textContent = temp.toFixed(1);
+if (this.api && this.api.token) {
+this.api
+.postWatchMetric({ heart_rate: hr, spo2, temperature: temp })
+.catch(() => {});
+}
 };
 update();
 this.state.watchInterval = setInterval(update, 2000);
 }
 }</script>
 <script>class Intensity {
-constructor(state, toast) {
+constructor(state, toast, api) {
 this.state = state;
 this.toast = toast;
+this.api = api || null;
 }
 select(val, el) {
 this.state.intensity = val;
@@ -742,6 +848,30 @@ this.scheduleMidnightReset();
 submitDaily() {
 if (!this.state.intensity)
 return this.toast.show("운동 강도를 선택하세요", true);
+if (this.api && this.api.token) {
+const today = new Date();
+const date =
+today.getFullYear() +
+"-" +
+String(today.getMonth() + 1).padStart(2, "0") +
+"-" +
+String(today.getDate()).padStart(2, "0");
+const tags = Array.from(
+document.querySelectorAll(".injury-tag.selected"),
+).map((el) => el.textContent);
+const note =
+document.querySelector(".injury-textarea")?.value || "";
+this.api
+.createRecord({
+date,
+intensity: this.state.intensity,
+injury_tags: tags,
+injury_note: note,
+})
+.then(() => this.toast.show("오늘의 기록이 제출되었습니다"))
+.catch((e) => this.toast.show(`제출 실패: ${e.message}`, true));
+return;
+}
 this.toast.show("오늘의 기록이 제출되었습니다");
 }
 }</script>
@@ -751,10 +881,11 @@ el.classList.toggle("selected");
 }
 }</script>
 <script>class TeamCode {
-constructor(state, modal, toast) {
+constructor(state, modal, toast, api) {
 this.state = state;
 this.modal = modal;
 this.toast = toast;
+this.api = api || null;
 }
 showModal() {
 this.modal.open({
@@ -777,6 +908,11 @@ document.getElementById("homeTeamName").textContent = "팀 " + code;
 document.getElementById("homeTeamCode").textContent = code;
 this.modal.close();
 this.toast.show("팀이 변경되었습니다");
+if (this.api && this.api.token) {
+this.api
+.joinTeam({ team_code: code })
+.catch((e) => this.toast.show(`팀 동기화 실패: ${e.message}`, true));
+}
 }
 }</script>
 <script>class Home {
@@ -903,13 +1039,14 @@ const state = new State();
 const toast = new Toast("toast");
 const modal = new Modal("modal", "modalTitle", "modalDesc", "modalActions");
 const router = new Router();
-const authForm = new AuthForm(state, router, toast);
+const api = window.LONGRUN_API_BASE ? new Api(window.LONGRUN_API_BASE) : null;
+const authForm = new AuthForm(state, router, toast, api);
 const phoneVerify = new PhoneVerify(toast);
-const signup = new Signup(state, router, toast);
-const watchSim = new WatchSimulator(state);
-const intensity = new Intensity(state, toast);
+const signup = new Signup(state, router, toast, api);
+const watchSim = new WatchSimulator(state, api);
+const intensity = new Intensity(state, toast, api);
 const injury = new Injury();
-const teamCode = new TeamCode(state, modal, toast);
+const teamCode = new TeamCode(state, modal, toast, api);
 const home = new Home(state);
 const profile = new Profile(state, router, modal, toast, intensity);
 const clock = new Clock("statusTime");

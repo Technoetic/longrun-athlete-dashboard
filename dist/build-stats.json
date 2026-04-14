@@ -1,13 +1,13 @@
 {
-  "timestamp": "2026-04-14T12:56:07.658Z",
+  "timestamp": "2026-04-14T13:17:47.246Z",
   "src": {
-    "index_html": 26815,
+    "index_html": 26849,
     "css_total": 16302,
-    "js_total": 16994,
-    "grand_total": 60111
+    "js_total": 20918,
+    "grand_total": 64069
   },
   "dist": {
-    "index_html": 51190
+    "index_html": 54744
   },
-  "reduction_percent": 14.84
+  "reduction_percent": 14.55
 }

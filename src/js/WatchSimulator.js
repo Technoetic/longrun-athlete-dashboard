@@ -1,6 +1,7 @@
 class WatchSimulator {
-	constructor(state) {
+	constructor(state, api) {
 		this.state = state;
+		this.api = api || null;
 	}
 	toggle() {
 		this.state.watchConnected = !this.state.watchConnected;
@@ -25,16 +26,17 @@ class WatchSimulator {
 	}
 	simulate() {
 		const update = () => {
-			document.getElementById("hrValue").textContent = Math.floor(
-				65 + Math.random() * 30,
-			);
-			document.getElementById("spo2Value").textContent = Math.floor(
-				96 + Math.random() * 4,
-			);
-			document.getElementById("tempValue").textContent = (
-				36.2 +
-				Math.random() * 0.8
-			).toFixed(1);
+			const hr = Math.floor(65 + Math.random() * 30);
+			const spo2 = Math.floor(96 + Math.random() * 4);
+			const temp = Number((36.2 + Math.random() * 0.8).toFixed(1));
+			document.getElementById("hrValue").textContent = hr;
+			document.getElementById("spo2Value").textContent = spo2;
+			document.getElementById("tempValue").textContent = temp.toFixed(1);
+			if (this.api && this.api.token) {
+				this.api
+					.postWatchMetric({ heart_rate: hr, spo2, temperature: temp })
+					.catch(() => {});
+			}
 		};
 		update();
 		this.state.watchInterval = setInterval(update, 2000);
