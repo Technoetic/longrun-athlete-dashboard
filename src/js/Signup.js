@@ -82,7 +82,8 @@ class Signup {
 		const showWelcome = () => {
 			document.getElementById("welcomeName").textContent =
 				this.state.nickname + "님, 환영합니다!";
-			document.getElementById("athleteCode").textContent = this.state.athleteCode;
+			document.getElementById("athleteCode").textContent =
+				this.state.athleteCode;
 			this.router.go("welcome");
 		};
 

@@ -51,7 +51,11 @@
 	window.manualSync = (ev) => {
 		if (ev?.preventDefault) ev.preventDefault();
 		const native = window.LongRunNative;
-		if (window.LONGRUN_NATIVE === true && native && typeof native.requestSync === "function") {
+		if (
+			window.LONGRUN_NATIVE === true &&
+			native &&
+			typeof native.requestSync === "function"
+		) {
 			try {
 				const result = native.requestSync();
 				toast.show(result ? `동기화: ${result}` : "동기화 요청됨");

@@ -195,7 +195,8 @@ class WebActivity : AppCompatActivity() {
 				}
 				val body = conn.inputStream.bufferedReader().use { it.readText() }
 				conn.disconnect()
-				JSONObject(body).optString("email", null as String?)
+				val json = JSONObject(body)
+				if (json.has("email") && !json.isNull("email")) json.getString("email") else null
 			} catch (_: Exception) {
 				null
 			}

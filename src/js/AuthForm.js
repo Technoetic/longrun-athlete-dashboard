@@ -16,7 +16,9 @@ class AuthForm {
 		}
 	}
 	switchFindTab(idx, el) {
-		for (const t of document.querySelectorAll("#screen-findAccount .tab-item")) {
+		for (const t of document.querySelectorAll(
+			"#screen-findAccount .tab-item",
+		)) {
 			t.classList.remove("active");
 		}
 		el.classList.add("active");

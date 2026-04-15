@@ -66,7 +66,15 @@ class Api {
 		return this._request("PATCH", "/api/user/me", payload);
 	}
 
-	createCondition({ sleep, fatigue, mood, energy, compositeScore, acwr, srpe }) {
+	createCondition({
+		sleep,
+		fatigue,
+		mood,
+		energy,
+		compositeScore,
+		acwr,
+		srpe,
+	}) {
 		return this._request("POST", "/api/conditions", {
 			sleep,
 			fatigue,

@@ -513,7 +513,15 @@ return this._request("GET", "/api/user/me");
 updateProfile(payload) {
 return this._request("PATCH", "/api/user/me", payload);
 }
-createCondition({ sleep, fatigue, mood, energy, compositeScore, acwr, srpe }) {
+createCondition({
+sleep,
+fatigue,
+mood,
+energy,
+compositeScore,
+acwr,
+srpe,
+}) {
 return this._request("POST", "/api/conditions", {
 sleep,
 fatigue,
@@ -617,7 +625,9 @@ btn.textContent = "\u2022\u2022";
 }
 }
 switchFindTab(idx, el) {
-for (const t of document.querySelectorAll("#screen-findAccount .tab-item")) {
+for (const t of document.querySelectorAll(
+"#screen-findAccount .tab-item",
+)) {
 t.classList.remove("active");
 }
 el.classList.add("active");
@@ -750,7 +760,8 @@ this.state.athleteCode = "LR-" + rand;
 const showWelcome = () => {
 document.getElementById("welcomeName").textContent =
 this.state.nickname + "님, 환영합니다!";
-document.getElementById("athleteCode").textContent = this.state.athleteCode;
+document.getElementById("athleteCode").textContent =
+this.state.athleteCode;
 this.router.go("welcome");
 };
 if (this.api && this.signEmail && this.signPw) {
@@ -828,11 +839,7 @@ document.getElementById("spo2Value").textContent = spo2;
 document.getElementById("tempValue").textContent = temp.toFixed(1);
 // 네이티브 Android 앱 안에서는 시뮬레이션 POST 비활성화
 // (LongRun Android 가 Health Connect 에서 실측값을 직접 전송)
-if (
-window.LONGRUN_NATIVE !== true &&
-this.api &&
-this.api.currentEmail
-) {
+if (window.LONGRUN_NATIVE !== true && this.api && this.api.currentEmail) {
 this.api
 .postWatchData({
 heart_rate: hr,
@@ -919,8 +926,7 @@ const val = this.state.intensity;
 const tags = Array.from(
 document.querySelectorAll(".injury-tag.selected"),
 ).map((el) => el.textContent);
-const note =
-document.querySelector(".injury-textarea")?.value || "";
+const note = document.querySelector(".injury-textarea")?.value || "";
 const intensityLabel =
 val <= 3 ? "low" : val <= 6 ? "moderate" : val <= 8 ? "high" : "max";
 const tasks = [
@@ -1155,7 +1161,11 @@ window.confirmLogout = () => profile.confirmLogout();
 window.manualSync = (ev) => {
 if (ev?.preventDefault) ev.preventDefault();
 const native = window.LongRunNative;
-if (window.LONGRUN_NATIVE === true && native && typeof native.requestSync === "function") {
+if (
+window.LONGRUN_NATIVE === true &&
+native &&
+typeof native.requestSync === "function"
+) {
 try {
 const result = native.requestSync();
 toast.show(result ? `동기화: ${result}` : "동기화 요청됨");

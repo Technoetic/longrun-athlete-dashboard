@@ -34,11 +34,7 @@ class WatchSimulator {
 			document.getElementById("tempValue").textContent = temp.toFixed(1);
 			// 네이티브 Android 앱 안에서는 시뮬레이션 POST 비활성화
 			// (LongRun Android 가 Health Connect 에서 실측값을 직접 전송)
-			if (
-				window.LONGRUN_NATIVE !== true &&
-				this.api &&
-				this.api.currentEmail
-			) {
+			if (window.LONGRUN_NATIVE !== true && this.api && this.api.currentEmail) {
 				this.api
 					.postWatchData({
 						heart_rate: hr,

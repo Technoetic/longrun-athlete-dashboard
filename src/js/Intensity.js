@@ -69,8 +69,7 @@ class Intensity {
 			const tags = Array.from(
 				document.querySelectorAll(".injury-tag.selected"),
 			).map((el) => el.textContent);
-			const note =
-				document.querySelector(".injury-textarea")?.value || "";
+			const note = document.querySelector(".injury-textarea")?.value || "";
 			const intensityLabel =
 				val <= 3 ? "low" : val <= 6 ? "moderate" : val <= 8 ? "high" : "max";
 			const tasks = [
