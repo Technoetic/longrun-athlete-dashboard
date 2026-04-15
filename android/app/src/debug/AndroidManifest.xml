@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <application>
+        <!-- Debug-only: Phase 1~3 IDO BLE test triggers.
+             NOT shipped in release builds. -->
+        <receiver
+            android:name=".IdoDebugReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.technoetic.longrun.IDO_PING" />
+                <action android:name="com.technoetic.longrun.IDO_HR_ON" />
+                <action android:name="com.technoetic.longrun.IDO_HR_OFF" />
+                <action android:name="com.technoetic.longrun.IDO_SYNC_SWEEP" />
+                <action android:name="com.technoetic.longrun.IDO_HEALTH_SYNC" />
+                <action android:name="com.technoetic.longrun.IDO_DAILY" />
+                <action android:name="com.technoetic.longrun.IDO_SYNC_NOW" />
+                <action android:name="com.technoetic.longrun.IDO_CAT_SWEEP" />
+                <action android:name="com.technoetic.longrun.IDO_CAT3" />
+            </intent-filter>
+        </receiver>
+    </application>
+</manifest>
