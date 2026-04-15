@@ -34,3 +34,11 @@ step_archive/ido_research/**/*
 scripts/*.png
 scripts/check_latest_hr.out
 scripts/poll_out.txt
+
+# Phase B1: Release signing — keystore와 비밀번호는 절대 커밋 금지
+keystore.properties
+*.jks
+*.keystore
+android/keystore.properties
+android/*.jks
+android/*.keystore

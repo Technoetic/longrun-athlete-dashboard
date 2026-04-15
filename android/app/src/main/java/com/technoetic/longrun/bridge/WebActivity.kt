@@ -120,7 +120,14 @@ class WebActivity : AppCompatActivity() {
 			},
 		)
 
-		web.loadUrl(APP_URL)
+		// Phase B3: Health Connect가 ACTION_SHOW_PERMISSIONS_RATIONALE intent로
+		// 우리 앱을 열었다면 rationale 페이지로 바로 이동.
+		val initialUrl = if (intent?.action == "androidx.health.ACTION_SHOW_PERMISSIONS_RATIONALE") {
+			"$BACKEND/pages/health-rationale.html"
+		} else {
+			APP_URL
+		}
+		web.loadUrl(initialUrl)
 	}
 
 	override fun onResume() {
@@ -141,6 +148,30 @@ class WebActivity : AppCompatActivity() {
 
 		val sdkStatus = HealthBridge.availability(this)
 		if (sdkStatus != HealthConnectClient.SDK_AVAILABLE) return
+
+		// Phase B4: Android 12+ BLE runtime permissions. Request once on startup
+		// so users don't need to find the hidden "기기 연결" button later. The
+		// launcher callback just Toasts — the next triggerSyncIfReady() call
+		// (onResume) will proceed.
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+			val btScanGranted = ContextCompat.checkSelfPermission(
+				this,
+				"android.permission.BLUETOOTH_SCAN",
+			) == PackageManager.PERMISSION_GRANTED
+			val btConnectGranted = ContextCompat.checkSelfPermission(
+				this,
+				"android.permission.BLUETOOTH_CONNECT",
+			) == PackageManager.PERMISSION_GRANTED
+			if (!btScanGranted || !btConnectGranted) {
+				btPermissionLauncher.launch(
+					arrayOf(
+						"android.permission.BLUETOOTH_SCAN",
+						"android.permission.BLUETOOTH_CONNECT",
+					),
+				)
+				// Fall through to Health Connect flow — BT 권한 없이도 HC sync 는 돌아간다.
+			}
+		}
 
 		lifecycleScope.launch {
 			val hasPerm = HealthBridge.hasAllPermissions(this@WebActivity)

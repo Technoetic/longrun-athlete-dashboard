@@ -6,75 +6,57 @@
 
 ## 🔴 블로커 (배포 전 필수)
 
-### B1. 서명 키스토어
+### B1. 서명 키스토어 ⚠️ 사용자 작업 대기
 
-**현재 상태**: `app-release-unsigned.apk` 14.9MB 빌드는 되지만 서명 없음.
+**상태**: `build.gradle.kts`에 signingConfig 블록 추가됨 (커밋 `__pending__`).
+`keystore.properties` 파일이 있으면 서명, 없으면 unsigned로 fallback.
+**키스토어 파일 자체는 사용자가 직접 생성**해야 함 (비밀번호가 영구 자산).
 
-**해야 할 것**:
-```bash
-keytool -genkey -v \
-  -keystore longrun-release.jks \
-  -alias longrun \
-  -keyalg RSA -keysize 2048 \
-  -validity 10000
-```
+**가이드**: [android/KEYSTORE_SETUP.md](../../android/KEYSTORE_SETUP.md)
 
-- 비밀번호는 **영구 자산** — 분실 시 Play Store 앱 업데이트 영영 불가능 (Play App Signing 사용하지 않는 한)
-- `android/app/build.gradle.kts`에 `signingConfigs { release { ... } }` 블록 추가 필요
-- 키스토어 파일은 **git 제외** + 안전한 백업 (비밀번호 관리자 + 물리 백업 2곳 이상)
-- Play App Signing에 등록하면 업로드 키만 관리하면 돼서 안전하지만 초기 등록 시 신중 결정
+**사용자가 할 일**:
+1. `cd android && keytool -genkey ...` 실행
+2. `android/keystore.properties` 작성
+3. 비밀번호를 비밀번호 관리자 + 물리 백업 2곳에 저장
+4. (권장) Play App Signing 활성화
 
-**권장 시점**: 실제 Play Store 업로드 결정 직전. 지금은 아님.
+### B2. 개인정보 처리방침 ⚠️ 초안만 — 검토 필요
 
-### B2. 개인정보 처리방침 페이지
+**상태**: `pages/privacy.html` 템플릿 작성됨 (커밋 `__pending__`).
+배너로 "초안" 명시. 다음 항목이 **사용자 결정 대기**:
 
-**현재 상태**: 미작성 추정.
+- 보관 기간 (예: 24개월?)
+- 계정 삭제 처리 일수 (예: 7영업일?)
+- 데이터센터 리전 확정
+- 미성년자 연령 제한
+- 개인정보 보호 책임자 이름
+- 법무 검토 (선택, 권장)
 
-**해야 할 것**: Play Store 필수 요구사항. URL이 필요하고 앱 내 링크도 필요.
+**Play Store 등록 시 URL**: `https://longrun-coach-dashboard-production.up.railway.app/pages/privacy.html`
 
-**수집 데이터 목록** (현재 시점):
-- 이메일 주소 (로그인 계정)
-- 심박수 (실시간 + 일일 통계 + 120 포인트 sparkline 배열)
-- 걸음수, 거리, 칼로리, 운동 시간
-- 디바이스 MAC 주소 (R21 식별용, 현재 하드코딩 `1F:0F:C7:77:05:66` → 사용자별 저장 필요)
-- Health Connect 권한으로 읽는 데이터 (폰 헬스 데이터)
+### B3. Health Connect rationale ✅
 
-**작성 포인트**:
-- 개인 건강 정보 보관 위치 (Railway MySQL, 리전)
-- 보관 기간 정책
-- 사용자 계정 삭제 요청 처리 프로세스
-- 제3자 공유 없음 (있다면 명시)
-- 연락처 (technoetic@hotmail.com)
+**상태**: `pages/health-rationale.html` 작성 + WebActivity가
+`ACTION_SHOW_PERMISSIONS_RATIONALE` intent로 진입하면 이 페이지로 자동
+라우팅 (커밋 `__pending__`).
 
-**권장 위치**: `https://longrun-coach-dashboard-production.up.railway.app/pages/privacy.html` 신설.
+각 권한별 한국어 설명 포함 (심박수, 안정심박, HRV, SpO2, 활동, 수면,
+백그라운드 접근). 사용자가 문구 일부 수정 원할 수 있음.
 
-### B3. Health Connect 권한 rationale
+### B4. targetSdk / BLE 런타임 권한 ✅ (부분)
 
-**현재 상태**: `AndroidManifest.xml`에 `ACTION_SHOW_PERMISSIONS_RATIONALE` intent filter만 선언됨. 실제 rationale 페이지는 미구현.
+**상태**:
+- `targetSdk=34` (Android 14) 유지. Google Play 2026 정책 확정 시 35로
+  업그레이드 검토 (커밋 `__pending__` RELEASE_CHECKLIST 메모).
+- BLUETOOTH_SCAN/CONNECT 런타임 권한 요청 추가 (앱 시작 시 자동, Android
+  12+). Health Connect 권한과 별개로 처리.
+- `BLUETOOTH_SCAN`은 `neverForLocation` flag 정확히 적용 확인됨.
 
-**해야 할 것**: 사용자가 Health Connect 권한 요청을 받을 때 "왜 이 앱이 이 권한이 필요한지" 설명 화면을 보여야 함. 현재는 `WebActivity`가 해당 intent를 받지만 전용 설명 UI는 없음.
+### B5. R21 MAC 하드코딩 제거 ✅
 
-**작성 포인트**:
-- READ_HEART_RATE / READ_RESTING_HEART_RATE / READ_HRV / ... 각 권한별 용도
-- READ_HEALTH_DATA_IN_BACKGROUND (Android 14+): 15분 주기 자동 동기화를 위해 필요
-
-### B4. targetSdk / 권한 리뷰
-
-**현재 상태**: `compileSdk=34, targetSdk=34` (Android 14).
-
-**확인할 것**:
-- Play Store 2026년 최신 요구사항이 Android 15/16일 수 있음 (Google 매년 targetSdk 상향 요구)
-- `BLUETOOTH_SCAN` + `android:usesPermissionFlags="neverForLocation"` 플래그가 Android 12+에서 정확한지 재확인
-- `BLUETOOTH_CONNECT` 런타임 권한 요청 UI 있는가? (IdoBleClient가 체크만 하고 실제 요청은 안 함) → Phase 6 추가 필요
-
-### B5. 디버그 IDO MAC 하드코딩 제거
-
-**현재 상태**: `HealthBridge.kt` 와 `IdoDebugReceiver.kt` 에 `DEFAULT_R21_MAC = "1F:0F:C7:77:05:66"`.
-
-**해야 할 것**:
-- BLE scan으로 R21 디바이스 발견 → 사용자가 리스트에서 선택 → SharedPreferences에 저장 (`ido_mac` 키)
-- WebActivity 또는 온보딩 단계에서 "기기 연결" 버튼 + 스캔 UI
-- Default fallback 하드코딩은 debug build에만 남기고 release는 완전 제거
+**상태**: 완료 (커밋 `69111bd`). `IdoBleClient.findR21()` (bonded 우선
++ scan fallback). WebActivity JS bridge `scanR21()` / `savedIdoMac()` /
+`clearIdoMac()`. 실기 검증 완료.
 
 ## 🟡 중요 (배포 직후 반드시)
 
@@ -153,17 +135,26 @@ keytool -genkey -v \
 2. **비공개 베타**: 선수/코치 5~20명
 3. **공개 출시**: 위 B1-B5 모두 완료 후
 
-## 현재 세션의 결론
+## 현재 세션의 결론 (2026-04-15 23:30 갱신)
 
-**현재 상태로 배포 가능한가**: ❌ 아니오. 최소 B1~B5 + M5 필요.
+**현재 상태로 배포 가능한가**:
+- 본인 단일 사용자: ✅ 완벽 작동 (15분마다 R21 → 대시보드)
+- 가족/베타 (5~10명): 🟡 거의 가능 — B1 키스토어만 사용자가 만들면 됨
+- Play Store 공개: 🟡 거의 가능 — B1 키스토어 + B2 개인정보 처리방침 본문 확정 + 법무 검토
 
-**오늘까지 한 것으로 가능한가**: ✅ 네, **본인 단일 사용자용으로는 이미 작동**. 개인 앱으로 써도 문제없는 수준. Play Store 배포만 블로커.
+**오늘 (2026-04-15) 처리한 블로커**:
+- ✅ B3 rationale HTML + 라우팅
+- ✅ B4 BLE 런타임 권한 (앱 시작 자동 요청)
+- ✅ B5 MAC 하드코딩 제거 (커밋 69111bd)
+- ⚠️ B2 처리방침 템플릿만 (본문 확정 사용자 대기)
+- ⚠️ B1 빌드 인프라만 (키스토어 자체는 사용자 직접 생성)
 
-**다음 우선순위**:
-1. B5 (MAC 하드코딩 제거) — 코드 변경 작음, 가치 큼
-2. M5 (대시보드 정적 섹션 연결) — 시각적 완성도
-3. M1 (HRV/SpO2) — 데이터 축적 후
-4. B1-B4 (서명/개인정보/rationale/SDK) — 배포 결정 시점에 일괄
+**남은 사용자 작업**:
+1. `android/KEYSTORE_SETUP.md` 따라 키스토어 생성 (1회, 30분)
+2. `pages/privacy.html` 템플릿의 `(확정 필요)` 항목 채우기
+3. (선택) 법무 검토
+4. Play Console 등록 + Play App Signing
+5. 첫 internal track 업로드
 
 ---
 

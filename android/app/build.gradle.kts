@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
 	id("com.android.application")
 	id("org.jetbrains.kotlin.android")
@@ -15,9 +17,31 @@ android {
 		versionName = "0.2.1"
 	}
 
+	// Phase B1: 릴리즈 서명. keystore.properties 파일이 존재하면 그 값으로
+	// 서명, 없으면 release 빌드는 unsigned 로 떨어진다 (개발 중에도 빌드는 됨).
+	// keystore.properties 는 .gitignore 처리되어 절대 커밋되지 않는다.
+	val keystorePropsFile = rootProject.file("keystore.properties")
+	val signingProps: Properties? = if (keystorePropsFile.exists()) {
+		Properties().apply { keystorePropsFile.inputStream().use { load(it) } }
+	} else null
+
+	signingConfigs {
+		if (signingProps != null) {
+			create("release") {
+				storeFile = rootProject.file(signingProps.getProperty("storeFile"))
+				storePassword = signingProps.getProperty("storePassword")
+				keyAlias = signingProps.getProperty("keyAlias")
+				keyPassword = signingProps.getProperty("keyPassword")
+			}
+		}
+	}
+
 	buildTypes {
 		release {
 			isMinifyEnabled = false
+			if (signingProps != null) {
+				signingConfig = signingConfigs.getByName("release")
+			}
 		}
 	}
 	compileOptions {
