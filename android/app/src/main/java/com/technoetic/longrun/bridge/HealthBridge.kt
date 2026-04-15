@@ -145,6 +145,48 @@ object HealthBridge {
 			return@withLock "FAIL: Health Connect 읽기 실패 — ${e.javaClass.simpleName}: ${e.message}"
 		}
 
+		// Phase 1 M4: IDO BLE direct fetch. Supplements Health Connect with fields
+		// VoiceCaddie Runner never writes (resting HR, up-to-the-minute steps/kcal).
+		// Non-blocking contract: IDO failures must not fail the whole sync.
+		val prefs = context.getSharedPreferences("longrun", Context.MODE_PRIVATE)
+		val idoMac = prefs.getString("ido_mac", null) ?: "1F:0F:C7:77:05:66"
+		try {
+			val ido = IdoBleClient(context).fetchDailySummary(idoMac)
+			if (ido != null) {
+				android.util.Log.d(
+					"LongRun",
+					"IDO daily ${ido.isoDate()} steps=${ido.steps} rhr=${ido.restingHeartRate} kcal=${ido.activeCalories}",
+				)
+				// Use IDO values to fill gaps. Health Connect wins for its own native
+				// fields, but IDO overrides when HC produced only stale data.
+				ido.restingHeartRate?.let {
+					payload.put("resting_heart_rate", it)
+					// R21 doesn't push session-HR to Health Connect, so HC's heart_rate
+					// (if any) is always stale. Replace it with the freshly-read rhr
+					// and reset heart_rate_age_min so the backend stale filter passes.
+					val hcAge = payload.optInt("heart_rate_age_min", Int.MAX_VALUE)
+					if (hcAge > 60 || !payload.has("heart_rate")) {
+						payload.put("heart_rate", it)
+						payload.put("heart_rate_age_min", 0)
+					}
+				}
+				ido.steps?.let { if (!payload.has("steps")) payload.put("steps", it) }
+				ido.distanceMeters?.let {
+					if (!payload.has("distance_km")) payload.put("distance_km", it / 1000.0)
+				}
+				ido.exerciseMinutes?.let {
+					if (!payload.has("exercise_minutes")) payload.put("exercise_minutes", it)
+				}
+				ido.activeCalories?.let {
+					if (!payload.has("active_calories")) payload.put("active_calories", it)
+				}
+			} else {
+				android.util.Log.d("LongRun", "IDO daily: null (connect or parse failed)")
+			}
+		} catch (e: Exception) {
+			android.util.Log.w("LongRun", "IDO fetch threw: ${e.javaClass.simpleName}: ${e.message}")
+		}
+
 		val size = payload.length()
 		if (size <= 1) return@withLock "SKIP: 최근 24h 데이터 없음"
 

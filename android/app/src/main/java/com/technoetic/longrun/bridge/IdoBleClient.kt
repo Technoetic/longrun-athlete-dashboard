@@ -160,6 +160,14 @@ class IdoBleClient(private val context: Context) {
 	// Each TX expects a notify reply; deferreds are fulfilled in onCharacteristicChanged.
 	private val pendingReplies = ConcurrentLinkedQueue<CompletableDeferred<ByteArray>>()
 
+	// v3 multi-packet reassembly state. IDO v3 frames exceeding the BLE MTU (~244B)
+	// are fragmented: first packet carries the full magic prefix (33 DA AD DA AD),
+	// subsequent packets are prefixed with a single 0x33 continuation marker followed
+	// by raw data bytes. A frame is complete when the accumulated length equals
+	// len_field + 3 (observed in Phase 0 logs).
+	private var v3Buf: ByteArray? = null
+	private var v3Expected: Int = 0
+
 	private var connectedDeferred: CompletableDeferred<Boolean>? = null
 	private var servicesDiscoveredDeferred: CompletableDeferred<Boolean>? = null
 	private var cccdWriteDeferred: CompletableDeferred<Boolean>? = null
@@ -264,6 +272,25 @@ class IdoBleClient(private val context: Context) {
 		}
 	}
 
+	/**
+	 * One-shot helper: connect, fetch cat=0x08 daily summary, parse, disconnect.
+	 * Returns null if connection or parsing fails. Caller does NOT need to manage
+	 * lifecycle. Safe to call from a SyncWorker coroutine.
+	 */
+	suspend fun fetchDailySummary(address: String): IdoParser.DailySummary? {
+		return try {
+			if (!connect(address)) return null
+			val req = buildHealthQuery(category = 0x08, nseq = (System.currentTimeMillis() and 0xFFFF).toInt())
+			val reply = sendAndAwaitReply(req, timeoutMs = 6_000) ?: return null
+			IdoParser.parseDailySummary(reply)
+		} catch (t: Throwable) {
+			Log.e(TAG, "fetchDailySummary crashed", t)
+			null
+		} finally {
+			disconnect()
+		}
+	}
+
 	@SuppressLint("MissingPermission")
 	fun disconnect() {
 		val g = gatt ?: return
@@ -334,9 +361,68 @@ class IdoBleClient(private val context: Context) {
 			@Suppress("DEPRECATION")
 			val value = characteristic.value ?: return
 			Log.d(TAG, "notify ${characteristic.uuid} len=${value.size} hex=${value.toHex()}")
-			// Deliver to the oldest pending reply. M1 doesn't disambiguate by cmd yet.
-			pendingReplies.poll()?.complete(value)
+			handleNotify(value)
 		}
+	}
+
+	/**
+	 * Notify dispatcher. Recognises:
+	 *   - v1/v2 legacy frames (no magic) → immediately deliver to pending reply.
+	 *   - v3 frame start (33 DA AD DA AD ...) → begin reassembly; deliver when complete.
+	 *   - v3 continuation (0x33 prefix + raw data) → append to pending buffer.
+	 */
+	private fun handleNotify(value: ByteArray) {
+		if (value.isEmpty()) return
+
+		// Detect v3 frame start: magic is 33 DA AD DA AD
+		val isV3Start = value.size >= 5 &&
+			value[0] == 0x33.toByte() && value[1] == 0xDA.toByte() &&
+			value[2] == 0xAD.toByte() && value[3] == 0xDA.toByte() &&
+			value[4] == 0xAD.toByte()
+
+		if (isV3Start) {
+			// New v3 frame. Parse length field at offset 6..7 (LE).
+			if (value.size < 8) {
+				Log.w(TAG, "v3 start too short")
+				return
+			}
+			val lenField = (value[6].toInt() and 0xFF) or ((value[7].toInt() and 0xFF) shl 8)
+			val totalExpected = lenField + 3
+			if (value.size >= totalExpected) {
+				// Single-packet frame, deliver immediately.
+				v3Buf = null
+				v3Expected = 0
+				pendingReplies.poll()?.complete(value.copyOf(totalExpected))
+			} else {
+				// Multi-packet, start buffer.
+				v3Buf = value.copyOf()
+				v3Expected = totalExpected
+				Log.d(TAG, "v3 reassembly start: have=${value.size} expected=$totalExpected")
+			}
+			return
+		}
+
+		// Continuation of a v3 multi-packet frame: first byte is 0x33 marker, rest is data.
+		val buf = v3Buf
+		if (buf != null && value.isNotEmpty() && value[0] == 0x33.toByte()) {
+			val contData = value.copyOfRange(1, value.size)
+			val merged = buf + contData
+			if (merged.size >= v3Expected) {
+				// Complete.
+				val completed = merged.copyOf(v3Expected)
+				v3Buf = null
+				v3Expected = 0
+				Log.d(TAG, "v3 reassembly complete: len=${completed.size}")
+				pendingReplies.poll()?.complete(completed)
+			} else {
+				v3Buf = merged
+				Log.d(TAG, "v3 reassembly progress: have=${merged.size}/$v3Expected")
+			}
+			return
+		}
+
+		// Legacy v1/v2 frame: deliver raw bytes.
+		pendingReplies.poll()?.complete(value)
 	}
 }
 

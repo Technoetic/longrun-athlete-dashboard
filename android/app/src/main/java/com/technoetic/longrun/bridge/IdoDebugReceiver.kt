@@ -45,6 +45,61 @@ class IdoDebugReceiver : BroadcastReceiver() {
 				Log.i(TAG, "IDO_HEALTH_SYNC received, mac=$mac")
 				scope.launch { runHealthSyncTest(context, mac) }
 			}
+			ACTION_DAILY -> {
+				Log.i(TAG, "IDO_DAILY received, mac=$mac")
+				scope.launch { runDailyTest(context, mac) }
+			}
+			ACTION_SYNC_NOW -> {
+				Log.i(TAG, "IDO_SYNC_NOW received")
+				scope.launch {
+					val prefs = context.getSharedPreferences("longrun", Context.MODE_PRIVATE)
+					val email = prefs.getString("email", "") ?: ""
+					if (email.isBlank()) {
+						Log.e(TAG, "✗ no email in prefs — log in via WebActivity first")
+						return@launch
+					}
+					Log.i(TAG, "→ HealthBridge.syncOnce($email)")
+					val result = HealthBridge.syncOnce(context, email)
+					Log.i(TAG, "sync result: $result")
+				}
+			}
+		}
+	}
+
+	/**
+	 * Phase 1 M4-3: fetch cat=0x08 (daily summary), run it through IdoParser, and
+	 * log the structured result. Validates multi-packet reassembly + parser path.
+	 */
+	private suspend fun runDailyTest(context: Context, mac: String) {
+		val client = IdoBleClient(context)
+		try {
+			Log.i(TAG, "→ connect($mac)")
+			if (!client.connect(mac)) {
+				Log.e(TAG, "✗ connect failed")
+				return
+			}
+			val req = IdoBleClient.buildHealthQuery(0x08, nseq = 200)
+			Log.i(TAG, "→ cat=0x08 request ${req.size}B")
+			val reply = client.sendAndAwaitReply(req, timeoutMs = 6_000)
+			if (reply == null) {
+				Log.e(TAG, "✗ no reply")
+				return
+			}
+			Log.i(TAG, "✓ reply ${reply.size}B (first 64B): " +
+				reply.take(64).joinToString(" ") { "%02X".format(it) })
+			val parsed = IdoParser.parseDailySummary(reply)
+			if (parsed == null) {
+				Log.w(TAG, "✗ parser returned null")
+			} else {
+				Log.i(TAG, "📊 ${parsed.isoDate()} steps=${parsed.steps} " +
+					"dist=${parsed.distanceMeters}m exercise=${parsed.exerciseMinutes}min " +
+					"rhr=${parsed.restingHeartRate} kcal=${parsed.activeCalories}")
+			}
+		} catch (t: Throwable) {
+			Log.e(TAG, "daily test crashed", t)
+		} finally {
+			client.disconnect()
+			Log.i(TAG, "disconnected")
 		}
 	}
 
@@ -246,6 +301,8 @@ class IdoDebugReceiver : BroadcastReceiver() {
 		const val ACTION_HR_OFF = "com.technoetic.longrun.IDO_HR_OFF"
 		const val ACTION_SYNC_SWEEP = "com.technoetic.longrun.IDO_SYNC_SWEEP"
 		const val ACTION_HEALTH_SYNC = "com.technoetic.longrun.IDO_HEALTH_SYNC"
+		const val ACTION_DAILY = "com.technoetic.longrun.IDO_DAILY"
+		const val ACTION_SYNC_NOW = "com.technoetic.longrun.IDO_SYNC_NOW"
 
 		// R21 MAC captured in Phase 0. Override with --es mac <addr> from adb.
 		private const val DEFAULT_R21_MAC = "1F:0F:C7:77:05:66"

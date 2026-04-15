@@ -74,6 +74,8 @@
                 <action android:name="com.technoetic.longrun.IDO_HR_OFF" />
                 <action android:name="com.technoetic.longrun.IDO_SYNC_SWEEP" />
                 <action android:name="com.technoetic.longrun.IDO_HEALTH_SYNC" />
+                <action android:name="com.technoetic.longrun.IDO_DAILY" />
+                <action android:name="com.technoetic.longrun.IDO_SYNC_NOW" />
             </intent-filter>
         </receiver>
 
