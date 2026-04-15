@@ -20,6 +20,8 @@ import androidx.work.WorkerParameters
 import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
+import java.time.LocalDateTime
+import java.time.temporal.ChronoUnit
 import java.util.concurrent.TimeUnit
 
 class SyncWorker(
@@ -130,9 +132,19 @@ class SyncWorker(
 		const val NOTIF_ID = 4201
 
 		fun enqueue(context: Context) {
+			// 0/15/30/45 정각에 정렬: 다음 quarter-hour까지의 지연 계산.
+			// WorkManager는 Doze/절전 환경에서 ±수 분 drift 가능.
+			val now = LocalDateTime.now()
+			val minutesUntilNextQuarter = 15L - (now.minute % 15)
+			val nextQuarter = now
+				.truncatedTo(ChronoUnit.MINUTES)
+				.plusMinutes(minutesUntilNextQuarter)
+			val initialDelayMs = java.time.Duration.between(now, nextQuarter).toMillis()
+
 			val req = PeriodicWorkRequestBuilder<SyncWorker>(
 				15, TimeUnit.MINUTES,
 			)
+				.setInitialDelay(initialDelayMs, TimeUnit.MILLISECONDS)
 				.setConstraints(
 					Constraints.Builder()
 						.setRequiredNetworkType(NetworkType.CONNECTED)
