@@ -23,10 +23,12 @@ step_archive/*
 step_archive/ido_research/*
 !step_archive/ido_research/PHASE_0_REPORT.md
 !step_archive/ido_research/SESSION_*.md
+!step_archive/ido_research/RELEASE_CHECKLIST.md
 # Catch subdirs under ido_research that might hold raw data
 step_archive/ido_research/**/*
 !step_archive/ido_research/PHASE_0_REPORT.md
 !step_archive/ido_research/SESSION_*.md
+!step_archive/ido_research/RELEASE_CHECKLIST.md
 
 # One-off debug scripts and their outputs
 scripts/*.png
