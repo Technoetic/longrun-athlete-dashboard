@@ -191,8 +191,9 @@ class WebActivity : AppCompatActivity() {
 	 */
 	inner class JsBridge {
 		@JavascriptInterface
-		fun requestSync() {
+		fun requestSync(): String {
 			runOnUiThread { triggerSyncIfReady() }
+			return "요청됨"
 		}
 
 		@JavascriptInterface
