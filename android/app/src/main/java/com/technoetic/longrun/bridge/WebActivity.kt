@@ -143,14 +143,19 @@ class WebActivity : AppCompatActivity() {
 				.putString("cookie", cookie)
 				.apply()
 
-			// 백그라운드 주기 sync 를 한 번만 enqueue (unique, UPDATE 정책)
-			if (!prefs.getBoolean("bg_enqueued", false)) {
+			// 백그라운드 주기 sync 를 앱 버전마다 한 번씩 enqueue (unique, UPDATE 정책).
+			// versionCode를 기억해서 업데이트 시 새 스케줄 옵션(initialDelay 등)이 반영되도록.
+			val currentVc = try {
+				packageManager.getPackageInfo(packageName, 0).longVersionCode
+			} catch (_: Exception) { -1L }
+			val enqueuedVc = prefs.getLong("bg_enqueued_vc", -1L)
+			if (enqueuedVc != currentVc) {
 				SyncWorker.enqueue(applicationContext)
 				prefs.edit()
-					.putBoolean("bg_enqueued", true)
+					.putLong("bg_enqueued_vc", currentVc)
 					.putBoolean("bg", true)
 					.apply()
-				android.util.Log.d("LongRun", "periodic SyncWorker enqueued")
+				android.util.Log.d("LongRun", "periodic SyncWorker enqueued for vc=$currentVc")
 			}
 
 			val result = withContext(Dispatchers.IO) {
@@ -163,7 +168,7 @@ class WebActivity : AppCompatActivity() {
 				prefs.edit()
 					.remove("cookie")
 					.remove("email")
-					.putBoolean("bg_enqueued", false)
+					.remove("bg_enqueued_vc")
 					.apply()
 				CookieManager.getInstance().removeAllCookies(null)
 				Toast.makeText(
