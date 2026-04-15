@@ -15,6 +15,8 @@ import androidx.health.connect.client.records.TotalCaloriesBurnedRecord
 import androidx.health.connect.client.records.ExerciseSessionRecord
 import androidx.health.connect.client.request.ReadRecordsRequest
 import androidx.health.connect.client.time.TimeRangeFilter
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
@@ -22,6 +24,8 @@ import java.time.Duration
 import java.time.Instant
 
 object HealthBridge {
+
+	private val syncMutex = Mutex()
 
 	const val BACKEND =
 		"https://longrun-coach-dashboard-production.up.railway.app"
@@ -56,8 +60,8 @@ object HealthBridge {
 	 * 최근 24시간 Health Connect 데이터를 읽어 /api/watch-data 로 POST.
 	 * 성공: "OK — hr=.. spo2=.. steps=..", 실패: 에러 문자열
 	 */
-	suspend fun syncOnce(context: Context, email: String): String {
-		if (email.isBlank()) return "FAIL: 계정 저장 필요"
+	suspend fun syncOnce(context: Context, email: String): String = syncMutex.withLock {
+		if (email.isBlank()) return@withLock "FAIL: 계정 저장 필요"
 
 		val client = client(context)
 		val end = Instant.now()
@@ -130,15 +134,15 @@ object HealthBridge {
 			} / 60.0
 			if (sleepHours > 0) payload.put("sleep_hours", sleepHours)
 		} catch (e: SecurityException) {
-			return "FAIL: 권한 거부 — ${e.message}"
+			return@withLock "FAIL: 권한 거부 — ${e.message}"
 		} catch (e: Exception) {
-			return "FAIL: Health Connect 읽기 실패 — ${e.javaClass.simpleName}: ${e.message}"
+			return@withLock "FAIL: Health Connect 읽기 실패 — ${e.javaClass.simpleName}: ${e.message}"
 		}
 
 		val size = payload.length()
-		if (size <= 1) return "SKIP: 최근 24h 데이터 없음"
+		if (size <= 1) return@withLock "SKIP: 최근 24h 데이터 없음"
 
-		return try {
+		try {
 			postJson("$BACKEND/api/watch-data", payload.toString())
 		} catch (e: Exception) {
 			"FAIL: POST 실패 — ${e.javaClass.simpleName}: ${e.message}"
