@@ -41,6 +41,62 @@ class IdoDebugReceiver : BroadcastReceiver() {
 				Log.i(TAG, "IDO_SYNC_SWEEP received, mac=$mac")
 				scope.launch { runSyncSweepTest(context, mac) }
 			}
+			ACTION_HEALTH_SYNC -> {
+				Log.i(TAG, "IDO_HEALTH_SYNC received, mac=$mac")
+				scope.launch { runHealthSyncTest(context, mac) }
+			}
+		}
+	}
+
+	/**
+	 * Phase 1 M3β-4: replay the HEALTH_DATA v3 query loop from Phase 0 VeryFit
+	 * restart. Walks categories 0x01 through 0x10 with sequential nseq, sending
+	 * request + confirm pairs. The goal is to observe RX frames (especially on
+	 * af2) to learn which category yields HR samples.
+	 */
+	private suspend fun runHealthSyncTest(context: Context, mac: String) {
+		val client = IdoBleClient(context)
+		try {
+			Log.i(TAG, "→ connect($mac)")
+			if (!client.connect(mac)) {
+				Log.e(TAG, "✗ connect failed")
+				return
+			}
+
+			// Categories observed in Phase 0: 01, 02, 03, 05, 06, 07, 08, 0D, 0E, 10
+			val categories = byteArrayOf(0x01, 0x02, 0x03, 0x05, 0x06, 0x07, 0x08, 0x0D, 0x0E, 0x10)
+			var nseq = 100  // arbitrary starting seq, avoiding collision with VC Runner's own counter
+			for (cat in categories) {
+				val req = IdoBleClient.buildHealthQuery(cat, nseq++)
+				val reqHex = req.joinToString(" ") { "%02X".format(it) }
+				Log.i(TAG, "[cat=0x${"%02X".format(cat)}] → req ${req.size}B $reqHex")
+				val reply = client.sendAndAwaitReply(req, timeoutMs = 4_000)
+				if (reply == null) {
+					Log.w(TAG, "[cat=0x${"%02X".format(cat)}] ✗ no reply")
+				} else {
+					val rhex = reply.joinToString(" ") { "%02X".format(it) }
+					Log.i(TAG, "[cat=0x${"%02X".format(cat)}] ✓ reply ${reply.size}B $rhex")
+				}
+				// Send confirm / next step
+				val conf = IdoBleClient.buildHealthQuery(cat, nseq++, confirm = true)
+				val confHex = conf.joinToString(" ") { "%02X".format(it) }
+				Log.i(TAG, "[cat=0x${"%02X".format(cat)}] → conf ${conf.size}B $confHex")
+				val confReply = client.sendAndAwaitReply(conf, timeoutMs = 4_000)
+				if (confReply != null) {
+					val rhex = confReply.joinToString(" ") { "%02X".format(it) }
+					Log.i(TAG, "[cat=0x${"%02X".format(cat)}] ✓ conf reply ${confReply.size}B $rhex")
+				}
+				delay(500)
+			}
+
+			// 30 seconds passive window to see if af2 catches any push.
+			Log.i(TAG, "→ passive observation 30s")
+			delay(30_000)
+		} catch (t: Throwable) {
+			Log.e(TAG, "health sync test crashed", t)
+		} finally {
+			client.disconnect()
+			Log.i(TAG, "disconnected")
 		}
 	}
 
@@ -189,6 +245,7 @@ class IdoDebugReceiver : BroadcastReceiver() {
 		const val ACTION_HR_ON = "com.technoetic.longrun.IDO_HR_ON"
 		const val ACTION_HR_OFF = "com.technoetic.longrun.IDO_HR_OFF"
 		const val ACTION_SYNC_SWEEP = "com.technoetic.longrun.IDO_SYNC_SWEEP"
+		const val ACTION_HEALTH_SYNC = "com.technoetic.longrun.IDO_HEALTH_SYNC"
 
 		// R21 MAC captured in Phase 0. Override with --es mac <addr> from adb.
 		private const val DEFAULT_R21_MAC = "1F:0F:C7:77:05:66"

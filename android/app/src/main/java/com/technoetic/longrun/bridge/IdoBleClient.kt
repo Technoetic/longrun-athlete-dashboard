@@ -63,6 +63,88 @@ class IdoBleClient(private val context: Context) {
 		// Common ack prefix seen in TX/RX. First 2 bytes = cmd echo.
 		private const val ACK_CMD_0 = 0x07.toByte()
 		private const val ACK_CMD_1 = 0x40.toByte()
+
+		// ---- v3 magic-wrapped framing (for HEALTH_DATA sync, JSON, etc.) ----
+		// Layout: [magic:5=33 DA AD DA AD] [ver:1=01] [len_field:2 LE]
+		//         [cmd:1] [sub:1] [nseq:2 LE] [payload:N] [crc:2 LE]
+		//
+		// len_field = total_frame_bytes - 3  (empirically verified on 102 frames)
+		// crc = CRC16-CCITT-FALSE(poly=0x1021, init=0xFFFF) over frame[1..total-3]
+		//       i.e. skip the first magic byte 0x33, exclude the trailing 2-byte CRC.
+		// Output CRC is little-endian.
+		//
+		// Algorithm discovered via differential brute force in
+		// scripts/crc16_bruteforce.py (Phase 1 M3β, 2026-04-15).
+		private val V3_MAGIC = byteArrayOf(0x33, 0xDA.toByte(), 0xAD.toByte(), 0xDA.toByte(), 0xAD.toByte())
+
+		private fun crc16Ido(data: ByteArray, start: Int, endExclusive: Int): Int {
+			var crc = 0xFFFF
+			for (i in start until endExclusive) {
+				crc = crc xor ((data[i].toInt() and 0xFF) shl 8)
+				repeat(8) {
+					crc = if ((crc and 0x8000) != 0) ((crc shl 1) xor 0x1021) else (crc shl 1)
+					crc = crc and 0xFFFF
+				}
+			}
+			return crc and 0xFFFF
+		}
+
+		/**
+		 * Build a v3 magic frame ready for BLE characteristic write.
+		 *
+		 * @param cmd  primary command byte (e.g. 0x04 = HEALTH_DATA)
+		 * @param sub  sub-command byte (e.g. 0x08, 0x09, 0x0A for HR sync steps)
+		 * @param nseq 16-bit little-endian sequence number chosen by the caller
+		 * @param payload variable-length command body (may be empty)
+		 */
+		fun buildV3Frame(cmd: Byte, sub: Byte, nseq: Int, payload: ByteArray = ByteArray(0)): ByteArray {
+			val total = 5 + 1 + 2 + 2 + 2 + payload.size + 2
+			val lenField = total - 3
+			val out = ByteArray(total)
+			// magic
+			System.arraycopy(V3_MAGIC, 0, out, 0, 5)
+			// version
+			out[5] = 0x01
+			// length LE
+			out[6] = (lenField and 0xFF).toByte()
+			out[7] = ((lenField ushr 8) and 0xFF).toByte()
+			// cmd + sub
+			out[8] = cmd
+			out[9] = sub
+			// nseq LE
+			out[10] = (nseq and 0xFF).toByte()
+			out[11] = ((nseq ushr 8) and 0xFF).toByte()
+			// payload
+			System.arraycopy(payload, 0, out, 12, payload.size)
+			// crc over frame[1 .. total-3)  (skip first magic byte, exclude trailing 2-byte crc)
+			val crc = crc16Ido(out, 1, total - 2)
+			out[total - 2] = (crc and 0xFF).toByte()
+			out[total - 1] = ((crc ushr 8) and 0xFF).toByte()
+			return out
+		}
+
+		/**
+		 * v3 HEALTH_DATA query. Frame format (cmd=0x04 sub=0x00):
+		 *   payload[0] = 0x00 (request) or 0x01 (confirm)
+		 *   payload[1] = category (01=steps, 02=sleep? 05/06/07=activity segments,
+		 *                08=HR history?, 0D/0E=various, 10=?, 03=?)
+		 *   payload[2] = enabled flag (usually 1)
+		 *   payload[3..4] = offset / limit (varies)
+		 *
+		 * Category 0x07 returned the largest RX payload in Phase 0 captures.
+		 * Category 0x08 looked HR-related based on RX offset 7 value. M3β-4 will try
+		 * both and observe which one drives af2 HR samples.
+		 */
+		fun buildHealthQuery(category: Byte, nseq: Int, confirm: Boolean = false): ByteArray {
+			val payload = byteArrayOf(
+				if (confirm) 0x01 else 0x00,
+				category,
+				0x01,
+				0x00,
+				0x00,
+			)
+			return buildV3Frame(cmd = 0x04, sub = 0x00, nseq = nseq, payload = payload)
+		}
 	}
 
 	// --- State ---

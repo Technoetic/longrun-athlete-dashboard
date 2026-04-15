@@ -45,15 +45,69 @@ M3α sweep에서 8개 legacy `02 XX` 명령 응답 포맷이 확정됨:
 
 **즉시 제품화 가능한 가치**: HR 없이도 **배터리 퍼센트는 `02 01` offset 7 바이트**에서 바로 읽을 수 있음. 이것만으로도 대시보드에 워치 상태 위젯 추가 가능.
 
-### Phase 1 다음 단계 (M3β, 다음 세션)
+### ✅ M3β: v3 CRC16 해독 + HEALTH_DATA fetch (실기 완전 성공)
 
-**v3 CRC16 해독 + `33 DA AD` 프레임 빌더 구현**. 세 가지 접근:
+**CRC16 알고리즘 확정**:
+- poly = 0x1021 (CCITT)
+- init = 0xFFFF
+- refin/refout = false
+- xorout = 0x0000
+- **입력 범위**: `frame[1..total-2)` — 첫 magic 바이트 `0x33`를 **건너뛰고** 끝 2바이트 CRC 제외
+- 출력: **little-endian** 2바이트
 
-1. **Ghidra 디컴파일**: `libVeryFitMulti.so`의 `protocol_v3_build_packet` / `crc16_*` 계열 함수 역분석. 가장 확실하고 시간 투자 (2~6시간).
-2. **Brute force**: Python으로 CRC16 variant 수십 개 × poly 공간 × 초기값 공간 탐색. Phase 0 로그에 완전한 magic+payload+crc 프레임이 20+ 개 있으므로 통계적으로 특정 가능. 1~2시간.
-3. **Trace libVeryFitMulti.so**: Android에서 VeryFit 실행 중 `ptrace` 또는 Frida로 CRC 함수 직접 hook. 루팅 필요 → 현재 환경에서 불가.
+즉 표준 **CRC16-CCITT-FALSE**이지만 첫 바이트를 빼는 특이 관습. 이것이 내 초기 catalog 검색이 실패한 이유.
 
-**권장**: 2번 (brute force) 먼저. 실패 시 1번.
+**발견 방식**: Phase 0 로그에서 102개 완전 v3 프레임을 추출 → 1 바이트 차이의 frame pair로 differential analysis → 선형 CRC 가정하에 poly 후보 9개 탐색 → full-frame validation으로 유일한 해 확정. Python `scripts/crc16_bruteforce.py`에 전체 과정 기록.
+
+**검증**: 102/102 frames pass.
+
+**v3 frame builder (IdoBleClient.kt)**:
+```kotlin
+fun buildV3Frame(cmd: Byte, sub: Byte, nseq: Int, payload: ByteArray): ByteArray
+// layout: magic(5) + ver(1) + len_LE(2) + cmd(1) + sub(1) + nseq_LE(2) + payload(N) + crc_LE(2)
+// len_field = total - 3
+```
+
+### HEALTH_DATA query API (cmd=0x04 sub=0x00)
+
+VeryFit restart 시퀀스 재현 실기 성공. 카테고리별 응답 확정:
+
+| category | TX payload | RX 의미 |
+|---|---|---|
+| 0x01 | `00 01 01 00 00` | 디바이스 현재 날짜 + 요약 (27B) |
+| 0x02 | `00 02 01 00 00` | 수면 데이터 헤더 (57B) — 시간당 stages |
+| 0x03 | `00 03 01 00 00` | **초단위 activity + HR 스트림** (244B × N multi-packet) |
+| 0x05 | `00 05 01 00 00` | 21 샘플 segment (49B, 빈 상태) |
+| 0x06 | `00 06 01 00 00` | 34 샘플 segment (62B) |
+| 0x07 | `00 07 01 00 00` | 40 샘플 segment (68B) |
+| **0x08** | `00 08 01 00 00` | **HR 히스토리 + 일일 통계** (244B × multi) |
+| 0x0D | `00 0D 01 00 00` | 236 bytes (큰 frame) |
+| 0x0E | `00 0E 01 00 00` | 14 샘플 zone (42B) |
+| 0x10 | `00 10 01 00 00` | 22 샘플 segment (50B) |
+
+각 요청은 **request (payload[0]=0x00) + confirm (payload[0]=0x01)** 쌍으로 진행. confirm이 delivered-ack 역할.
+
+**cat=0x08 실기 결과**:
+```
+EA 07 04 0F  ← 2026-04-15 (연도 LE + 월 + 일)
+...
+E9 12        ← 4841 steps (little-endian)
+...
+E6 00        ← 230 kcal
+```
+**대시보드에 표시되던 바로 그 값**. HR 히스토리도 같은 바이트블록 내에 존재 (해석 필요).
+
+**cat=0x03 실기 결과** (244B × 3 multi-packet):
+반복되는 `05 XX`, `FF 00 XX`, `51 XX` 프리픽스 + 1바이트 값. 0x50~0x90 범위 (=80-144 decimal)에 집중 → **HR bpm 샘플**일 가능성 매우 높음. 파싱 로직은 M4에서.
+
+### Phase 1 다음 단계 (M4, 다음 세션)
+
+1. **Category payload 파서** — cat=0x08(일일 통계), cat=0x03(분단위 HR/activity) 바이트 구조 완전 해독
+2. **SyncWorker 통합** — 15분 주기로 `healthQuery` 시퀀스 실행 → 파싱 → 백엔드 POST
+3. **WatchRecord 업데이트** — heart_rate / resting_heart_rate / steps / active_calories 필드 채우기
+4. **대시보드 확인** — `<ul class="dp-list">` HR 필드가 `-` 대신 실제 값으로 표시
+
+**Phase 1 남은 작업 예상 일정**: **2~5일** (매우 짧음, 이미 모든 BLE 레이어 작동 증명됨).
 
 ### Phase 1 전체 로드맵 수정
 
