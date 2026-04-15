@@ -157,6 +157,22 @@ class WebActivity : AppCompatActivity() {
 				HealthBridge.syncOnce(this@WebActivity, email)
 			}
 			android.util.Log.d("LongRun", "sync result: $result")
+
+			// 쿠키 만료: 401 받으면 저장된 인증 정보 삭제 + 로그인 페이지로 이동
+			if (result.startsWith("FAIL 401")) {
+				prefs.edit()
+					.remove("cookie")
+					.remove("email")
+					.putBoolean("bg_enqueued", false)
+					.apply()
+				CookieManager.getInstance().removeAllCookies(null)
+				Toast.makeText(
+					this@WebActivity,
+					"세션 만료 — 다시 로그인해주세요",
+					Toast.LENGTH_LONG,
+				).show()
+				binding.webView.loadUrl("$APP_URL#login")
+			}
 		}
 	}
 
