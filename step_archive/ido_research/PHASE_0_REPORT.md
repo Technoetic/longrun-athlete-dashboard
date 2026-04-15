@@ -2,7 +2,70 @@
 
 **작성일**: 2026-04-15
 **목표**: LongRun이 VoiceCaddie Runner / VeryFit 없이 R21과 직접 통신하기 위한 BLE 프로토콜 해독
-**결과**: Phase 0 핵심 목표 달성. Phase 1 (PoC 코딩) 착수 가능.
+**결과**: Phase 0 핵심 목표 달성 + Phase 1 M1~M3α 실기 검증 완료.
+
+---
+
+## 0. Phase 1 진도 (후속 업데이트, 2026-04-15)
+
+Phase 0와 같은 날 Phase 1 M1~M3α까지 실기로 검증됨.
+
+### ✅ M1: BLE 연결 + 구독 + keepalive 왕복 (실기 성공)
+- `IdoBleClient.kt` Kotlin 드라이버 skeleton 작성
+- R21과 GATT 연결 성공 (client_if=83)
+- af7/af2 CCCD notify 구독 성공
+- `02 01` keepalive → `02 01 6A 1F 01 01 02 64 01 00 01 00 63 01 02 03 06 01 00 03` (20 bytes) 응답 확인
+- **결정적 발견: 바인딩 핸드셰이크 불필요**. 한 번 pair된 R21은 어떤 앱에서든 GATT 연결 가능. `VBUS_EVT_APP_BIND_START`, `VBUS_EVT_APP_SET_ENCRYPTED_AUTH` opcode는 **최초 페어링**에만 쓰이고 이후 재연결 시는 필요 없음.
+
+### ✅ M2: 상시 HR 토글 명령 전송 (실기 성공)
+- `03 63 55 01 55 55 78 32 00 00 17 3B 08 07 00 00` (16 bytes) 전송
+- R21 응답: `07 40 02 00 ...` (14 bytes, ack) + `03 63 00` (3 bytes, success)
+- **R21이 LongRun 앱의 smart HR 명령을 네이티브 앱과 동일하게 수락**함을 확인
+
+### ⚠️ M3α: HR 샘플 스트림 수신 시도 (부분 실패)
+- HR 토글 ON 후 2분간 passive observation → **af2 (`00000af2`)는 완벽히 조용**
+- 뒤이어 legacy `02 XX` sweep 8개 (VeryFit restart 시퀀스 모방) → 모두 응답 받음, 그러나 af2 여전히 조용
+- **결론**: HR streaming은 push가 아니라 **명시적 pull**. R21은 앱이 요청해야 HR을 보냄.
+- 요청 방식은 Phase 0 로그에서 확인된 v3 magic 프레임 시리즈: `33 DA AD DA AD 01 10 00 04 00 XX 00 ...`
+- **v3 프레임 재현에는 CRC16 알고리즘 해독이 필수**. 표준 CCITT-False/XMODEM/MODBUS/SUM16 모두 mismatch → 다음 세션에서 libVeryFitMulti.so Ghidra 분석 필요.
+
+### 새로 해독된 legacy 디바이스 info API (M3α 보너스)
+M3α sweep에서 8개 legacy `02 XX` 명령 응답 포맷이 확정됨:
+
+| 명령 | 응답 (hex) | 추정 의미 |
+|---|---|---|
+| `02 04` | `02 04 1F 0F C7 77 05 66 1F 0F C7 77 05 66` (14B) | **MAC echo** (duplicate MAC twice) |
+| `02 02` | `02 02 FB 0A FF 43 3F 6F 70 35 3F 08 88 00 02 00 51 CF 09 02` (20B) | **device info** (probably supported-features bitmap) |
+| `02 07` | `02 07 00 04 10 BF 38 2E B1 FF 0B 99 00 60 95 CF 06 01 00 14` (20B) | **secondary device info** |
+| `02 F0` | `02 F0 00 F4 00 F4 00 00 00 00 00` (11B) | **voltage/battery** — `F4 00` LE = 244 |
+| `02 30` | `02 30 00 ...00` (16B zeros) | **unused / placeholder** |
+| `02 01` | `02 01 6A 1F 01 01 02 64 01 00 01 00 63 01 02 03 06 01 00 03` (20B) | **keepalive status** — offset 6 byte (`02`)와 offset 7 byte (`64=100`)가 **배터리 퍼센트 추정** |
+| `02 F4` | `02 F4 28 00 00 00 2C 01 00 00 00 00 1E 0A 03` (15B) | **exercise params** (40, 300, 30, 778 little-endian) |
+| `02 EB` | `02 EB 01 00 24 00 01 00 01 01 00 01` (12B) | **unknown setting** |
+
+**즉시 제품화 가능한 가치**: HR 없이도 **배터리 퍼센트는 `02 01` offset 7 바이트**에서 바로 읽을 수 있음. 이것만으로도 대시보드에 워치 상태 위젯 추가 가능.
+
+### Phase 1 다음 단계 (M3β, 다음 세션)
+
+**v3 CRC16 해독 + `33 DA AD` 프레임 빌더 구현**. 세 가지 접근:
+
+1. **Ghidra 디컴파일**: `libVeryFitMulti.so`의 `protocol_v3_build_packet` / `crc16_*` 계열 함수 역분석. 가장 확실하고 시간 투자 (2~6시간).
+2. **Brute force**: Python으로 CRC16 variant 수십 개 × poly 공간 × 초기값 공간 탐색. Phase 0 로그에 완전한 magic+payload+crc 프레임이 20+ 개 있으므로 통계적으로 특정 가능. 1~2시간.
+3. **Trace libVeryFitMulti.so**: Android에서 VeryFit 실행 중 `ptrace` 또는 Frida로 CRC 함수 직접 hook. 루팅 필요 → 현재 환경에서 불가.
+
+**권장**: 2번 (brute force) 먼저. 실패 시 1번.
+
+### Phase 1 전체 로드맵 수정
+
+| Mileston | 원래 예상 | 현재 | 상태 |
+|---|---|---|---|
+| M1 (GATT connect + subscribe) | 2~3주 | **1일** | ✅ |
+| M2 (HR toggle) | 1주 | **1일** | ✅ |
+| M3 (HR sample stream) | 3~5주 | **1~3주** | 🟡 M3α만 |
+| M4 (binding handshake) | 2~4주 | **불필요** | ✅ (발견) |
+| M5 (에러 처리/재연결) | 2~4주 | 2~3주 | ⏳ |
+
+**Phase 1 전체**: 원래 10~18주 → **실측 3~6주**로 대폭 단축. Phase 0 디버그 로그 + 실기 검증이 역분석 상당 부분을 대체함.
 
 ---
 

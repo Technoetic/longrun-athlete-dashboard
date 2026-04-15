@@ -61,6 +61,21 @@
             android:name=".MainActivity"
             android:exported="false" />
 
+        <!-- Phase 1 debug trigger:
+             adb shell am broadcast -a com.technoetic.longrun.IDO_PING    -p com.technoetic.longrun.bridge
+             adb shell am broadcast -a com.technoetic.longrun.IDO_HR_ON   -p com.technoetic.longrun.bridge
+             adb shell am broadcast -a com.technoetic.longrun.IDO_HR_OFF  -p com.technoetic.longrun.bridge -->
+        <receiver
+            android:name=".IdoDebugReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.technoetic.longrun.IDO_PING" />
+                <action android:name="com.technoetic.longrun.IDO_HR_ON" />
+                <action android:name="com.technoetic.longrun.IDO_HR_OFF" />
+                <action android:name="com.technoetic.longrun.IDO_SYNC_SWEEP" />
+            </intent-filter>
+        </receiver>
+
         <!-- Alias to reuse on privacy-policy page if needed -->
         <activity-alias
             android:name="ViewPermissionUsageActivity"
