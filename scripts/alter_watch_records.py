@@ -21,6 +21,7 @@ try:
             ("heart_rate_max", "FLOAT NULL"),
             ("heart_rate_avg", "FLOAT NULL"),
             ("heart_rate_samples_count", "INT NULL"),
+            ("heart_rate_samples", "TEXT NULL"),
         ]
         for col, ddl in additions:
             if col in existing:

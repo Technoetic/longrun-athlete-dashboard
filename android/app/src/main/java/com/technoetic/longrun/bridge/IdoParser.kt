@@ -76,6 +76,7 @@ object IdoParser {
 		val maxBpm: Int,
 		val avgBpm: Int,
 		val latestBpm: Int,
+		val samples: List<Int>,
 	)
 
 	/**
@@ -123,6 +124,7 @@ object IdoParser {
 			maxBpm = samples.max(),
 			avgBpm = samples.sum() / samples.size,
 			latestBpm = samples.last(),
+			samples = samples,
 		)
 	}
 

@@ -171,12 +171,18 @@ object HealthBridge {
 			}
 			// HR stream 이 있으면 그게 가장 신선한 live HR이므로 heart_rate를 여기서 결정.
 			// Phase 3-A: heart_rate_max/avg/samples_count 컬럼이 DB에 추가됐으므로 함께 저장.
+			// Phase 3-C: 전체 샘플 배열도 JSON 문자열로 보내서 대시보드 sparkline에 사용.
 			if (hr != null) {
 				payload.put("heart_rate", hr.latestBpm)
 				payload.put("heart_rate_age_min", 0)
 				payload.put("heart_rate_max", hr.maxBpm)
 				payload.put("heart_rate_avg", hr.avgBpm)
 				payload.put("heart_rate_samples_count", hr.sampleCount)
+				// Downsample to 120 points max to keep payload small. Larger streams
+				// are averaged into bucket of size (sampleCount / 120).
+				val downsampled = downsampleBpm(hr.samples, maxPoints = 120)
+				val jsonArr = org.json.JSONArray(downsampled)
+				payload.put("heart_rate_samples", jsonArr)
 			} else if (ido?.restingHeartRate != null) {
 				// Fallback: daily summary's rhr if HR stream missing.
 				payload.put("heart_rate", ido.restingHeartRate)
@@ -194,6 +200,21 @@ object HealthBridge {
 		} catch (e: Exception) {
 			"FAIL: POST 실패 — ${e.javaClass.simpleName}: ${e.message}"
 		}
+	}
+
+	/** Bucket-average downsample. Preserves shape while capping points. */
+	private fun downsampleBpm(samples: List<Int>, maxPoints: Int): List<Int> {
+		if (samples.size <= maxPoints) return samples
+		val bucketSize = samples.size / maxPoints
+		val out = ArrayList<Int>(maxPoints)
+		var i = 0
+		while (i + bucketSize <= samples.size && out.size < maxPoints) {
+			var sum = 0
+			for (j in 0 until bucketSize) sum += samples[i + j]
+			out.add(sum / bucketSize)
+			i += bucketSize
+		}
+		return out
 	}
 
 	private fun postJson(urlStr: String, body: String): String {
