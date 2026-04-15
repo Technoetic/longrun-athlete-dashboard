@@ -170,11 +170,13 @@ object HealthBridge {
 				}
 			}
 			// HR stream 이 있으면 그게 가장 신선한 live HR이므로 heart_rate를 여기서 결정.
-			// max/avg/count는 DB 스키마에 아직 컬럼이 없으므로 현재는 heart_rate만
-			// latest로 저장. Phase 3에서 watch_records.heart_rate_max 등 컬럼 추가 예정.
+			// Phase 3-A: heart_rate_max/avg/samples_count 컬럼이 DB에 추가됐으므로 함께 저장.
 			if (hr != null) {
 				payload.put("heart_rate", hr.latestBpm)
 				payload.put("heart_rate_age_min", 0)
+				payload.put("heart_rate_max", hr.maxBpm)
+				payload.put("heart_rate_avg", hr.avgBpm)
+				payload.put("heart_rate_samples_count", hr.sampleCount)
 			} else if (ido?.restingHeartRate != null) {
 				// Fallback: daily summary's rhr if HR stream missing.
 				payload.put("heart_rate", ido.restingHeartRate)
