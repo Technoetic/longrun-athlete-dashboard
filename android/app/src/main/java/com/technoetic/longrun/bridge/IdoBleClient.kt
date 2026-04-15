@@ -10,6 +10,11 @@ import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothGattDescriptor
 import android.bluetooth.BluetoothManager
 import android.bluetooth.BluetoothProfile
+import android.bluetooth.le.ScanCallback
+import android.bluetooth.le.ScanFilter
+import android.bluetooth.le.ScanResult
+import android.bluetooth.le.ScanSettings
+import android.os.ParcelUuid
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
@@ -121,6 +126,84 @@ class IdoBleClient(private val context: Context) {
 			out[total - 2] = (crc and 0xFF).toByte()
 			out[total - 1] = ((crc ushr 8) and 0xFF).toByte()
 			return out
+		}
+
+		/**
+		 * Data about a discovered R21 candidate. Name from advertising packet.
+		 */
+		data class ScanHit(val mac: String, val name: String, val rssi: Int)
+
+		/**
+		 * Phase 4 B5: find R21 MAC. Checks in this order:
+		 *   1. Already-bonded devices (Samsung BT stack knows about it)
+		 *   2. BLE advertising scan (NURUN/R21 name filter)
+		 *
+		 * Bonded check is instant and usually successful when the user has ever
+		 * paired R21 to this phone via VoiceCaddie Runner or similar. The active
+		 * GATT owner (e.g. VC Runner) suppresses advertising, so we can't always
+		 * scan-discover it.
+		 *
+		 * Caller must hold BLUETOOTH_CONNECT runtime perm; BLUETOOTH_SCAN only
+		 * needed if bonded fallback fails.
+		 */
+		@SuppressLint("MissingPermission")
+		suspend fun findR21(context: Context, scanTimeoutMs: Long = 8_000): ScanHit? {
+			val btMgr = context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
+			val adapter: BluetoothAdapter = btMgr.adapter ?: return null
+			// 1. bonded devices
+			try {
+				val bonded = adapter.bondedDevices
+				for (dev in bonded) {
+					val name = try { dev.name } catch (_: Exception) { null } ?: continue
+					val upper = name.uppercase()
+					if (upper.contains("NURUN") || upper.contains("R21")) {
+						return ScanHit(mac = dev.address, name = name, rssi = 0)
+					}
+				}
+			} catch (_: Exception) { /* fall through to scan */ }
+
+			// 2. active scan
+			return scanForR21(context, scanTimeoutMs)
+		}
+
+		/**
+		 * Raw BLE advertising scan. Internal fallback — use findR21() preferentially.
+		 */
+		@SuppressLint("MissingPermission")
+		suspend fun scanForR21(context: Context, timeoutMs: Long = 8_000): ScanHit? {
+			val btMgr = context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
+			val adapter: BluetoothAdapter = btMgr.adapter ?: return null
+			if (!adapter.isEnabled) return null
+			val scanner = adapter.bluetoothLeScanner ?: return null
+
+			val seen = java.util.concurrent.ConcurrentHashMap<String, Pair<Int, String>>()
+			val callback = object : ScanCallback() {
+				override fun onScanResult(callbackType: Int, result: ScanResult) {
+					val name = try { result.device.name } catch (_: Exception) { null }
+						?: result.scanRecord?.deviceName
+						?: return
+					val upper = name.uppercase()
+					if (!upper.contains("NURUN") && !upper.contains("R21")) return
+					val mac = result.device.address ?: return
+					val rssi = result.rssi
+					val prev = seen[mac]
+					if (prev == null || rssi > prev.first) {
+						seen[mac] = rssi to name
+					}
+				}
+				override fun onScanFailed(errorCode: Int) {}
+			}
+			val settings = ScanSettings.Builder()
+				.setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
+				.build()
+			try {
+				scanner.startScan(emptyList<ScanFilter>(), settings, callback)
+				kotlinx.coroutines.delay(timeoutMs)
+			} finally {
+				try { scanner.stopScan(callback) } catch (_: Exception) {}
+			}
+			val entry = seen.maxByOrNull { it.value.first } ?: return null
+			return ScanHit(mac = entry.key, name = entry.value.second, rssi = entry.value.first)
 		}
 
 		/**

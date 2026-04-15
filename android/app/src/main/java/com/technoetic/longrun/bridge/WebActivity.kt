@@ -2,8 +2,11 @@ package com.technoetic.longrun.bridge
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.view.View
+import androidx.core.content.ContextCompat
 import android.webkit.CookieManager
 import android.webkit.JavascriptInterface
 import android.webkit.WebSettings
@@ -49,6 +52,16 @@ class WebActivity : AppCompatActivity() {
 				Toast.LENGTH_LONG,
 			).show()
 		}
+	}
+
+	// Phase B5: BLE scan/connect runtime permissions (Android 12+).
+	private val btPermissionLauncher = registerForActivityResult(
+		androidx.activity.result.contract.ActivityResultContracts.RequestMultiplePermissions(),
+	) { result ->
+		val allGranted = result.values.all { it }
+		val msg = if (allGranted) "BT 권한 승인됨 — '기기 연결' 다시 시도하세요"
+		else "BT 권한 거부됨 (기기 연결 불가)"
+		Toast.makeText(this, msg, Toast.LENGTH_LONG).show()
 	}
 
 	@SuppressLint("SetJavaScriptEnabled")
@@ -220,5 +233,64 @@ class WebActivity : AppCompatActivity() {
 
 		@JavascriptInterface
 		fun isNative(): Boolean = true
+
+		/** 저장된 R21 MAC (없으면 빈 문자열). */
+		@JavascriptInterface
+		fun savedIdoMac(): String {
+			val prefs = getSharedPreferences("longrun", Context.MODE_PRIVATE)
+			return prefs.getString("ido_mac", "") ?: ""
+		}
+
+		/** 저장된 MAC 삭제. */
+		@JavascriptInterface
+		fun clearIdoMac(): String {
+			getSharedPreferences("longrun", Context.MODE_PRIVATE)
+				.edit().remove("ido_mac").apply()
+			return "ok"
+		}
+
+		/**
+		 * BLE scan → R21 발견 시 MAC 저장. JSON 문자열 반환:
+		 *   {"ok":true,"mac":"1F:0F:...","name":"NURUN R21 0566","rssi":-56}
+		 *   {"ok":false,"error":"permission"|"bt_off"|"not_found"}
+		 * 런타임 권한(BLUETOOTH_SCAN, BLUETOOTH_CONNECT) 필요. 없으면 요청 후
+		 * "permission" 에러 반환 — JS에서 재시도.
+		 */
+		@JavascriptInterface
+		fun scanR21(): String {
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+				val scanGranted = ContextCompat.checkSelfPermission(
+					this@WebActivity,
+					"android.permission.BLUETOOTH_SCAN",
+				) == PackageManager.PERMISSION_GRANTED
+				val connectGranted = ContextCompat.checkSelfPermission(
+					this@WebActivity,
+					"android.permission.BLUETOOTH_CONNECT",
+				) == PackageManager.PERMISSION_GRANTED
+				if (!scanGranted || !connectGranted) {
+					runOnUiThread {
+						btPermissionLauncher.launch(
+							arrayOf(
+								"android.permission.BLUETOOTH_SCAN",
+								"android.permission.BLUETOOTH_CONNECT",
+							),
+						)
+					}
+					return """{"ok":false,"error":"permission"}"""
+				}
+			}
+			val btMgr = getSystemService(Context.BLUETOOTH_SERVICE) as android.bluetooth.BluetoothManager
+			if (btMgr.adapter == null || !btMgr.adapter.isEnabled) {
+				return """{"ok":false,"error":"bt_off"}"""
+			}
+			val hit = kotlinx.coroutines.runBlocking {
+				IdoBleClient.findR21(this@WebActivity, scanTimeoutMs = 8_000)
+			} ?: return """{"ok":false,"error":"not_found"}"""
+			getSharedPreferences("longrun", Context.MODE_PRIVATE)
+				.edit().putString("ido_mac", hit.mac).apply()
+			val macJson = hit.mac.replace("\"", "")
+			val nameJson = hit.name.replace("\"", "")
+			return """{"ok":true,"mac":"$macJson","name":"$nameJson","rssi":${hit.rssi}}"""
+		}
 	}
 }

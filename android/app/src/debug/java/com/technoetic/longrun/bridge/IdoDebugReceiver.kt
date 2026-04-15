@@ -71,6 +71,24 @@ class IdoDebugReceiver : BroadcastReceiver() {
 				Log.i(TAG, "IDO_CAT3 received, mac=$mac")
 				scope.launch { runCat3Dump(context, mac) }
 			}
+			ACTION_SCAN_SAVE -> {
+				Log.i(TAG, "IDO_SCAN_SAVE received")
+				scope.launch {
+					val hit = IdoBleClient.findR21(context, scanTimeoutMs = 8_000)
+					if (hit == null) {
+						Log.e(TAG, "✗ scan: no R21 found")
+					} else {
+						context.getSharedPreferences("longrun", Context.MODE_PRIVATE)
+							.edit().putString("ido_mac", hit.mac).apply()
+						Log.i(TAG, "✓ scan saved mac=${hit.mac} name=${hit.name} rssi=${hit.rssi}")
+					}
+				}
+			}
+			ACTION_CLEAR_MAC -> {
+				context.getSharedPreferences("longrun", Context.MODE_PRIVATE)
+					.edit().remove("ido_mac").apply()
+				Log.i(TAG, "ido_mac cleared")
+			}
 		}
 	}
 
@@ -377,6 +395,8 @@ class IdoDebugReceiver : BroadcastReceiver() {
 		const val ACTION_SYNC_NOW = "com.technoetic.longrun.IDO_SYNC_NOW"
 		const val ACTION_CAT_SWEEP = "com.technoetic.longrun.IDO_CAT_SWEEP"
 		const val ACTION_CAT3 = "com.technoetic.longrun.IDO_CAT3"
+		const val ACTION_SCAN_SAVE = "com.technoetic.longrun.IDO_SCAN_SAVE"
+		const val ACTION_CLEAR_MAC = "com.technoetic.longrun.IDO_CLEAR_MAC"
 
 		// R21 MAC captured in Phase 0. Override with --es mac <addr> from adb.
 		private const val DEFAULT_R21_MAC = "1F:0F:C7:77:05:66"

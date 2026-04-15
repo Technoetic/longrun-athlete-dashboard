@@ -148,9 +148,15 @@ object HealthBridge {
 		// Phase 1 M4: IDO BLE direct fetch. Supplements Health Connect with fields
 		// VoiceCaddie Runner never writes (resting HR, up-to-the-minute steps/kcal).
 		// Non-blocking contract: IDO failures must not fail the whole sync.
+		//
+		// Phase 4/B5: MAC은 SharedPreferences "ido_mac" 에서만 읽는다.
+		// null 이면 IDO 경로 전체 스킵 (Health Connect 경로만 진행). 사용자가
+		// WebActivity의 scan UI를 통해 MAC을 먼저 선택해야 함.
 		val prefs = context.getSharedPreferences("longrun", Context.MODE_PRIVATE)
-		val idoMac = prefs.getString("ido_mac", null) ?: "1F:0F:C7:77:05:66"
-		try {
+		val idoMac = prefs.getString("ido_mac", null)
+		if (idoMac.isNullOrBlank()) {
+			android.util.Log.d("LongRun", "IDO skip: no ido_mac in prefs")
+		} else try {
 			val fetch = IdoBleClient(context).fetchDaily(idoMac)
 			val ido = fetch.summary
 			val hr = fetch.hrStream
