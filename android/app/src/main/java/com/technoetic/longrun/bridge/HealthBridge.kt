@@ -37,6 +37,8 @@ object HealthBridge {
 		HealthPermission.getReadPermission(TotalCaloriesBurnedRecord::class),
 		HealthPermission.getReadPermission(ExerciseSessionRecord::class),
 		HealthPermission.getReadPermission(SleepSessionRecord::class),
+		// Android 14+: 백그라운드 (잠금/WorkManager) 에서 Health Connect 읽기
+		HealthPermission.PERMISSION_READ_HEALTH_DATA_IN_BACKGROUND,
 	)
 
 	fun availability(context: Context): Int =
