@@ -69,6 +69,63 @@ object IdoParser {
 		)
 	}
 
+	/** Aggregated HR stats derived from a cat=0x03 per-minute HR stream. */
+	data class HrStreamStats(
+		val sampleCount: Int,
+		val minBpm: Int,
+		val maxBpm: Int,
+		val avgBpm: Int,
+		val latestBpm: Int,
+	)
+
+	/**
+	 * Parse cat=0x03 per-minute activity/HR stream frame.
+	 *
+	 * Structure (empirical from Phase 2 M3β live capture 2026-04-15):
+	 *   - Magic + header + echo payload (offsets 0..16 as usual)
+	 *   - Body starts at offset 17 with a small header (~25 bytes) containing:
+	 *       record_count (LE16), segment_count, data_len, date (year LE16, month, day)
+	 *   - HR samples appear as repeating "05 XX" 2-byte pairs where XX is bpm.
+	 *   - Other prefixes (1f, ff, 06, 51, 4a, 21, 36, 9b, 73, 46, 4b, 79, 0f) mark
+	 *     segment boundaries or zone transitions — they interrupt the 05-stream
+	 *     but the individual 05-pairs before/after are still valid HR.
+	 *   - Defensive extraction: slide byte-by-byte, accept any (05, XX) where
+	 *     XX ∈ [30..220].
+	 */
+	fun parseHrStream(frame: ByteArray): HrStreamStats? {
+		if (frame.size < 30) return null
+		if (frame[0] != 0x33.toByte() || frame[1] != 0xDA.toByte()) return null
+		if (frame[8] != 0x04.toByte() || frame[9] != 0x00.toByte()) return null
+		if (frame[13] != 0x03.toByte()) return null
+
+		val samples = ArrayList<Int>()
+		// Skip magic(5) + ver(1) + len(2) + cmd(2) + nseq(2) + echo(5) = 17
+		// Then skip the ~40-byte internal header (date, segment pointers, etc.)
+		// and start the defensive scan.
+		val startScan = 40
+		val endScan = frame.size - 2  // exclude trailing CRC
+		var i = startScan
+		while (i < endScan - 1) {
+			val prefix = frame[i].toInt() and 0xFF
+			val value = frame[i + 1].toInt() and 0xFF
+			if (prefix == 0x05 && value in 30..220) {
+				samples.add(value)
+				i += 2
+			} else {
+				i += 1
+			}
+		}
+
+		if (samples.isEmpty()) return null
+		return HrStreamStats(
+			sampleCount = samples.size,
+			minBpm = samples.min(),
+			maxBpm = samples.max(),
+			avgBpm = samples.sum() / samples.size,
+			latestBpm = samples.last(),
+		)
+	}
+
 	// --- helpers ---
 
 	private fun u16LE(frame: ByteArray, offset: Int): Int =

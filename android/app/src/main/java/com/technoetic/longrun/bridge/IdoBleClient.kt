@@ -272,24 +272,45 @@ class IdoBleClient(private val context: Context) {
 		}
 	}
 
+	/** Combined result for a single sync session. Either field may be null. */
+	data class DailyFetch(
+		val summary: IdoParser.DailySummary?,
+		val hrStream: IdoParser.HrStreamStats?,
+	)
+
 	/**
-	 * One-shot helper: connect, fetch cat=0x08 daily summary, parse, disconnect.
-	 * Returns null if connection or parsing fails. Caller does NOT need to manage
-	 * lifecycle. Safe to call from a SyncWorker coroutine.
+	 * One-shot helper: connect, fetch cat=0x08 (daily summary) + cat=0x03
+	 * (per-minute HR stream), parse both, disconnect.
 	 */
-	suspend fun fetchDailySummary(address: String): IdoParser.DailySummary? {
+	suspend fun fetchDaily(address: String): DailyFetch {
 		return try {
-			if (!connect(address)) return null
-			val req = buildHealthQuery(category = 0x08, nseq = (System.currentTimeMillis() and 0xFFFF).toInt())
-			val reply = sendAndAwaitReply(req, timeoutMs = 6_000) ?: return null
-			IdoParser.parseDailySummary(reply)
+			if (!connect(address)) return DailyFetch(null, null)
+			var nseq = (System.currentTimeMillis() and 0xFFFF).toInt()
+
+			val sumReply = sendAndAwaitReply(
+				buildHealthQuery(category = 0x08, nseq = nseq++),
+				timeoutMs = 6_000,
+			)
+			val summary = sumReply?.let { IdoParser.parseDailySummary(it) }
+
+			val streamReply = sendAndAwaitReply(
+				buildHealthQuery(category = 0x03, nseq = nseq++),
+				timeoutMs = 8_000,
+			)
+			val hrStream = streamReply?.let { IdoParser.parseHrStream(it) }
+
+			DailyFetch(summary, hrStream)
 		} catch (t: Throwable) {
-			Log.e(TAG, "fetchDailySummary crashed", t)
-			null
+			Log.e(TAG, "fetchDaily crashed", t)
+			DailyFetch(null, null)
 		} finally {
 			disconnect()
 		}
 	}
+
+	/** Back-compat: existing callers that only want the daily summary. */
+	suspend fun fetchDailySummary(address: String): IdoParser.DailySummary? =
+		fetchDaily(address).summary
 
 	@SuppressLint("MissingPermission")
 	fun disconnect() {

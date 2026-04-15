@@ -77,6 +77,7 @@
                 <action android:name="com.technoetic.longrun.IDO_DAILY" />
                 <action android:name="com.technoetic.longrun.IDO_SYNC_NOW" />
                 <action android:name="com.technoetic.longrun.IDO_CAT_SWEEP" />
+                <action android:name="com.technoetic.longrun.IDO_CAT3" />
             </intent-filter>
         </receiver>
 

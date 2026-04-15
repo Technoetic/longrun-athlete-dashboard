@@ -67,6 +67,41 @@ class IdoDebugReceiver : BroadcastReceiver() {
 				Log.i(TAG, "IDO_CAT_SWEEP received, mac=$mac")
 				scope.launch { runCatSweep(context, mac) }
 			}
+			ACTION_CAT3 -> {
+				Log.i(TAG, "IDO_CAT3 received, mac=$mac")
+				scope.launch { runCat3Dump(context, mac) }
+			}
+		}
+	}
+
+	/** Phase 2-C: fetch cat=0x03 (per-minute activity/HR stream) and dump full
+	 * reassembled payload hex to logcat for offline parser development. */
+	private suspend fun runCat3Dump(context: Context, mac: String) {
+		val client = IdoBleClient(context)
+		try {
+			if (!client.connect(mac)) {
+				Log.e(TAG, "✗ connect failed")
+				return
+			}
+			val req = IdoBleClient.buildHealthQuery(0x03, nseq = 400)
+			val reply = client.sendAndAwaitReply(req, timeoutMs = 8_000)
+			if (reply == null) {
+				Log.e(TAG, "✗ no reply")
+				return
+			}
+			val hex = reply.joinToString("") { "%02x".format(it) }
+			Log.i(TAG, "cat=0x03 full ${reply.size}B hex=$hex")
+			// chunk to avoid logcat line truncation
+			val chunkSize = 500
+			var i = 0
+			while (i < hex.length) {
+				Log.i(TAG, "cat3chunk[${i/chunkSize}]: ${hex.substring(i, minOf(i + chunkSize, hex.length))}")
+				i += chunkSize
+			}
+		} catch (t: Throwable) {
+			Log.e(TAG, "cat3 dump crashed", t)
+		} finally {
+			client.disconnect()
 		}
 	}
 
@@ -341,6 +376,7 @@ class IdoDebugReceiver : BroadcastReceiver() {
 		const val ACTION_DAILY = "com.technoetic.longrun.IDO_DAILY"
 		const val ACTION_SYNC_NOW = "com.technoetic.longrun.IDO_SYNC_NOW"
 		const val ACTION_CAT_SWEEP = "com.technoetic.longrun.IDO_CAT_SWEEP"
+		const val ACTION_CAT3 = "com.technoetic.longrun.IDO_CAT3"
 
 		// R21 MAC captured in Phase 0. Override with --es mac <addr> from adb.
 		private const val DEFAULT_R21_MAC = "1F:0F:C7:77:05:66"

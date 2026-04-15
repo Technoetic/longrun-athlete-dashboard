@@ -151,29 +151,34 @@ object HealthBridge {
 		val prefs = context.getSharedPreferences("longrun", Context.MODE_PRIVATE)
 		val idoMac = prefs.getString("ido_mac", null) ?: "1F:0F:C7:77:05:66"
 		try {
-			val ido = IdoBleClient(context).fetchDailySummary(idoMac)
+			val fetch = IdoBleClient(context).fetchDaily(idoMac)
+			val ido = fetch.summary
+			val hr = fetch.hrStream
+			android.util.Log.d(
+				"LongRun",
+				"IDO daily=${ido?.let { "${it.isoDate()} steps=${it.steps} rhr=${it.restingHeartRate}" } ?: "null"} " +
+					"stream=${hr?.let { "n=${it.sampleCount} max=${it.maxBpm} avg=${it.avgBpm} latest=${it.latestBpm}" } ?: "null"}",
+			)
 			if (ido != null) {
-				android.util.Log.d(
-					"LongRun",
-					"IDO daily ${ido.isoDate()} steps=${ido.steps} rhr=${ido.restingHeartRate} kcal=${ido.activeCalories}",
-				)
 				// R21 워치 실측값이 우선 (LongRun은 R21 생태계 대시보드).
-				// Health Connect의 걸음/거리는 여러 소스가 합쳐져서 부정확하므로
-				// IDO 값이 있으면 덮어쓴다. HC만 유지하는 필드: basal_calories,
-				// sleep_hours, audio_db 등 (R21에 없는 것들).
-				ido.restingHeartRate?.let {
-					payload.put("resting_heart_rate", it)
-					// R21은 세션 외 HR을 Health Connect에 쓰지 않으므로 HC heart_rate는
-					// 언제나 stale. IDO의 현재 rhr을 fresh HR로 대체.
-					payload.put("heart_rate", it)
-					payload.put("heart_rate_age_min", 0)
-				}
 				ido.steps?.let { payload.put("steps", it) }
 				ido.distanceMeters?.let { payload.put("distance_km", it / 1000.0) }
 				ido.exerciseMinutes?.let { payload.put("exercise_minutes", it) }
 				ido.activeCalories?.let { payload.put("active_calories", it) }
-			} else {
-				android.util.Log.d("LongRun", "IDO daily: null (connect or parse failed)")
+				ido.restingHeartRate?.let {
+					payload.put("resting_heart_rate", it)
+				}
+			}
+			// HR stream 이 있으면 그게 가장 신선한 live HR이므로 heart_rate를 여기서 결정.
+			// max/avg/count는 DB 스키마에 아직 컬럼이 없으므로 현재는 heart_rate만
+			// latest로 저장. Phase 3에서 watch_records.heart_rate_max 등 컬럼 추가 예정.
+			if (hr != null) {
+				payload.put("heart_rate", hr.latestBpm)
+				payload.put("heart_rate_age_min", 0)
+			} else if (ido?.restingHeartRate != null) {
+				// Fallback: daily summary's rhr if HR stream missing.
+				payload.put("heart_rate", ido.restingHeartRate)
+				payload.put("heart_rate_age_min", 0)
 			}
 		} catch (e: Exception) {
 			android.util.Log.w("LongRun", "IDO fetch threw: ${e.javaClass.simpleName}: ${e.message}")
