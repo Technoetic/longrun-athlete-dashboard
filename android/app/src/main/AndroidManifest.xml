@@ -76,6 +76,7 @@
                 <action android:name="com.technoetic.longrun.IDO_HEALTH_SYNC" />
                 <action android:name="com.technoetic.longrun.IDO_DAILY" />
                 <action android:name="com.technoetic.longrun.IDO_SYNC_NOW" />
+                <action android:name="com.technoetic.longrun.IDO_CAT_SWEEP" />
             </intent-filter>
         </receiver>
 

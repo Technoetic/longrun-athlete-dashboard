@@ -63,6 +63,43 @@ class IdoDebugReceiver : BroadcastReceiver() {
 					Log.i(TAG, "sync result: $result")
 				}
 			}
+			ACTION_CAT_SWEEP -> {
+				Log.i(TAG, "IDO_CAT_SWEEP received, mac=$mac")
+				scope.launch { runCatSweep(context, mac) }
+			}
+		}
+	}
+
+	/** Phase 2 exploration: brute-force health query categories 0x01 through 0x20
+	 * and log the raw reply for each. Goal: locate HRV and SpO2 data types. */
+	private suspend fun runCatSweep(context: Context, mac: String) {
+		val client = IdoBleClient(context)
+		try {
+			if (!client.connect(mac)) {
+				Log.e(TAG, "✗ connect failed")
+				return
+			}
+			var nseq = 300
+			for (catInt in 0x01..0x20) {
+				val cat = catInt.toByte()
+				val req = IdoBleClient.buildHealthQuery(cat, nseq++)
+				val reply = client.sendAndAwaitReply(req, timeoutMs = 4_000)
+				if (reply == null) {
+					Log.w(TAG, "[cat=0x${"%02X".format(cat)}] ✗ timeout")
+				} else {
+					val preview = reply.take(64).joinToString(" ") { "%02X".format(it) }
+					Log.i(TAG, "[cat=0x${"%02X".format(cat)}] ${reply.size}B  $preview")
+				}
+				// send confirm to unblock device before moving on
+				val conf = IdoBleClient.buildHealthQuery(cat, nseq++, confirm = true)
+				client.sendAndAwaitReply(conf, timeoutMs = 2_000)
+				delay(400)
+			}
+		} catch (t: Throwable) {
+			Log.e(TAG, "cat sweep crashed", t)
+		} finally {
+			client.disconnect()
+			Log.i(TAG, "disconnected")
 		}
 	}
 
@@ -303,6 +340,7 @@ class IdoDebugReceiver : BroadcastReceiver() {
 		const val ACTION_HEALTH_SYNC = "com.technoetic.longrun.IDO_HEALTH_SYNC"
 		const val ACTION_DAILY = "com.technoetic.longrun.IDO_DAILY"
 		const val ACTION_SYNC_NOW = "com.technoetic.longrun.IDO_SYNC_NOW"
+		const val ACTION_CAT_SWEEP = "com.technoetic.longrun.IDO_CAT_SWEEP"
 
 		// R21 MAC captured in Phase 0. Override with --es mac <addr> from adb.
 		private const val DEFAULT_R21_MAC = "1F:0F:C7:77:05:66"

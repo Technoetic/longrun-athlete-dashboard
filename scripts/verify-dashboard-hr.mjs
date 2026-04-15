@@ -97,7 +97,13 @@ console.log(">> screenshot saved: step_archive/dashboard_verified.png");
 
 await browser.close();
 
-// Verdict
-const ok = rowData.hr && rowData.hr.includes("86");
-console.log(ok ? "\n✅ SUCCESS: 대시보드에 86 bpm 표시됨" : "\n❌ FAIL: HR 텍스트에 86 없음");
+// Verdict: pass if hr text contains any number in a plausible bpm range (40..220)
+const hrMatch = (rowData.hr || "").match(/(\d+)\s*bpm/);
+const hrVal = hrMatch ? parseInt(hrMatch[1], 10) : null;
+const ok = hrVal !== null && hrVal >= 40 && hrVal <= 220;
+console.log(
+	ok
+		? `\n✅ SUCCESS: 대시보드에 실제 HR ${hrVal} bpm 표시됨`
+		: `\n❌ FAIL: HR 텍스트 "${rowData.hr}" 에서 유효한 숫자 못 찾음`,
+);
 process.exit(ok ? 0 : 2);

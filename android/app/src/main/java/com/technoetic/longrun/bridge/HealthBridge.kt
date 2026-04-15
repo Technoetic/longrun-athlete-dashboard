@@ -157,29 +157,21 @@ object HealthBridge {
 					"LongRun",
 					"IDO daily ${ido.isoDate()} steps=${ido.steps} rhr=${ido.restingHeartRate} kcal=${ido.activeCalories}",
 				)
-				// Use IDO values to fill gaps. Health Connect wins for its own native
-				// fields, but IDO overrides when HC produced only stale data.
+				// R21 워치 실측값이 우선 (LongRun은 R21 생태계 대시보드).
+				// Health Connect의 걸음/거리는 여러 소스가 합쳐져서 부정확하므로
+				// IDO 값이 있으면 덮어쓴다. HC만 유지하는 필드: basal_calories,
+				// sleep_hours, audio_db 등 (R21에 없는 것들).
 				ido.restingHeartRate?.let {
 					payload.put("resting_heart_rate", it)
-					// R21 doesn't push session-HR to Health Connect, so HC's heart_rate
-					// (if any) is always stale. Replace it with the freshly-read rhr
-					// and reset heart_rate_age_min so the backend stale filter passes.
-					val hcAge = payload.optInt("heart_rate_age_min", Int.MAX_VALUE)
-					if (hcAge > 60 || !payload.has("heart_rate")) {
-						payload.put("heart_rate", it)
-						payload.put("heart_rate_age_min", 0)
-					}
+					// R21은 세션 외 HR을 Health Connect에 쓰지 않으므로 HC heart_rate는
+					// 언제나 stale. IDO의 현재 rhr을 fresh HR로 대체.
+					payload.put("heart_rate", it)
+					payload.put("heart_rate_age_min", 0)
 				}
-				ido.steps?.let { if (!payload.has("steps")) payload.put("steps", it) }
-				ido.distanceMeters?.let {
-					if (!payload.has("distance_km")) payload.put("distance_km", it / 1000.0)
-				}
-				ido.exerciseMinutes?.let {
-					if (!payload.has("exercise_minutes")) payload.put("exercise_minutes", it)
-				}
-				ido.activeCalories?.let {
-					if (!payload.has("active_calories")) payload.put("active_calories", it)
-				}
+				ido.steps?.let { payload.put("steps", it) }
+				ido.distanceMeters?.let { payload.put("distance_km", it / 1000.0) }
+				ido.exerciseMinutes?.let { payload.put("exercise_minutes", it) }
+				ido.activeCalories?.let { payload.put("active_calories", it) }
 			} else {
 				android.util.Log.d("LongRun", "IDO daily: null (connect or parse failed)")
 			}
