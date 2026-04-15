@@ -48,6 +48,26 @@
 	window.handleLogout = () => profile.handleLogout();
 	window.confirmLogout = () => profile.confirmLogout();
 
+	window.manualSync = (ev) => {
+		if (ev?.preventDefault) ev.preventDefault();
+		const native = window.LongRunNative;
+		if (window.LONGRUN_NATIVE === true && native && typeof native.requestSync === "function") {
+			try {
+				const result = native.requestSync();
+				toast.show(result ? `동기화: ${result}` : "동기화 요청됨");
+			} catch (e) {
+				toast.show("동기화 실패", true);
+			}
+		} else {
+			toast.show("네이티브 앱에서만 사용 가능합니다", true);
+		}
+	};
+
+	if (window.LONGRUN_NATIVE === true) {
+		const btn = document.getElementById("manualSyncBtn");
+		if (btn) btn.style.display = "";
+	}
+
 	clock.start();
 	intensity.scheduleMidnightReset();
 })();
