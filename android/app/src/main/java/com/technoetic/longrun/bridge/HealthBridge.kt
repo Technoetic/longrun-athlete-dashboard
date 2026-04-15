@@ -75,8 +75,14 @@ object HealthBridge {
 			val hr = client.readRecords(
 				ReadRecordsRequest(HeartRateRecord::class, range),
 			).records
-			val latestHr = hr.lastOrNull()?.samples?.lastOrNull()?.beatsPerMinute
-			if (latestHr != null) payload.put("heart_rate", latestHr)
+			val latestHrSample = hr
+				.flatMap { it.samples }
+				.maxByOrNull { it.time }
+			if (latestHrSample != null) {
+				val ageMin = Duration.between(latestHrSample.time, end).toMinutes()
+				payload.put("heart_rate", latestHrSample.beatsPerMinute)
+				payload.put("heart_rate_age_min", ageMin)
+			}
 
 			val rhr = client.readRecords(
 				ReadRecordsRequest(RestingHeartRateRecord::class, range),

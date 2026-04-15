@@ -11,3 +11,22 @@ backend/**/*.pyc
 backend/*.db
 backend/.pytest_cache/
 backend/**/.pytest_cache/
+
+# Claude Code workspace
+.claude/
+
+# Research archive (large: APKs, strings, logs, screenshots)
+# Keep only the curated report and final IDO protocol doc.
+step_archive/*
+!step_archive/report/
+!step_archive/ido_research/
+step_archive/ido_research/*
+!step_archive/ido_research/PHASE_0_REPORT.md
+# Catch subdirs under ido_research that might hold raw data
+step_archive/ido_research/**/*
+!step_archive/ido_research/PHASE_0_REPORT.md
+
+# One-off debug scripts and their outputs
+scripts/*.png
+scripts/check_latest_hr.out
+scripts/poll_out.txt
