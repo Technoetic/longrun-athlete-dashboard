@@ -13,6 +13,7 @@ import androidx.health.connect.client.records.DistanceRecord
 import androidx.health.connect.client.records.ActiveCaloriesBurnedRecord
 import androidx.health.connect.client.records.TotalCaloriesBurnedRecord
 import androidx.health.connect.client.records.ExerciseSessionRecord
+import androidx.health.connect.client.records.FloorsClimbedRecord
 import androidx.health.connect.client.request.ReadRecordsRequest
 import androidx.health.connect.client.time.TimeRangeFilter
 import kotlinx.coroutines.sync.Mutex
@@ -40,6 +41,7 @@ object HealthBridge {
 		HealthPermission.getReadPermission(ActiveCaloriesBurnedRecord::class),
 		HealthPermission.getReadPermission(TotalCaloriesBurnedRecord::class),
 		HealthPermission.getReadPermission(ExerciseSessionRecord::class),
+		HealthPermission.getReadPermission(FloorsClimbedRecord::class),
 		HealthPermission.getReadPermission(SleepSessionRecord::class),
 		// Android 14+: 백그라운드 (잠금/WorkManager) 에서 Health Connect 읽기
 		HealthPermission.PERMISSION_READ_HEALTH_DATA_IN_BACKGROUND,
@@ -131,6 +133,11 @@ object HealthBridge {
 				Duration.between(it.startTime, it.endTime).toMinutes()
 			}
 			if (exerciseMinutes > 0) payload.put("exercise_minutes", exerciseMinutes)
+
+			val floors = client.readRecords(
+				ReadRecordsRequest(FloorsClimbedRecord::class, range),
+			).records.sumOf { it.floors }
+			if (floors > 0) payload.put("flights_climbed", floors)
 
 			val sleep = client.readRecords(
 				ReadRecordsRequest(SleepSessionRecord::class, range),
