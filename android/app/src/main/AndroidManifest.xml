@@ -21,6 +21,7 @@
     <uses-permission android:name="android.permission.health.READ_ACTIVE_CALORIES_BURNED" />
     <uses-permission android:name="android.permission.health.READ_TOTAL_CALORIES_BURNED" />
     <uses-permission android:name="android.permission.health.READ_EXERCISE" />
+    <uses-permission android:name="android.permission.health.READ_FLOORS_CLIMBED" />
     <uses-permission android:name="android.permission.health.READ_SLEEP" />
     <!-- Android 14+: 백그라운드에서 Health Connect 읽기 (잠금/WorkManager) -->
     <uses-permission android:name="android.permission.health.READ_HEALTH_DATA_IN_BACKGROUND" />
