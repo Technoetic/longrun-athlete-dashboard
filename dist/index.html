@@ -1,444 +1,4 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>LongRun 선수 대시보드</title>
-<style>*{margin:0;padding:0;box-sizing:border-box}body{background:#1a1a2e;display:flex;justify-content:center;align-items:center;min-height:100vh;font-family:"Segoe UI",sans-serif}@keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}@keyframes slideIn{from{opacity:0;transform:translateX(40px)}to{opacity:1;transform:translateX(0)}}@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}</style>
-<style>.phone-frame{width:393px;height:852px;border:8px solid #2d2d44;border-radius:44px;background:#0f0f1a;overflow:hidden;position:relative;box-shadow:0 0 60px rgba(100,100,255,0.15),inset 0 0 30px rgba(0,0,0,0.3)}.phone-notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:150px;height:28px;background:#2d2d44;border-radius:0 0 18px 18px;z-index:100}.phone-status-bar{position:absolute;top:0;left:0;right:0;height:50px;display:flex;justify-content:space-between;align-items:center;padding:0 24px;z-index:99;color:#fff;font-size:12px;font-weight:600}.phone-home-indicator{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:134px;height:5px;background:rgba(255,255,255,0.3);border-radius:3px;z-index:100}.screen-container{width:100%;height:100%;overflow-y:auto;overflow-x:hidden;scrollbar-width:none}.screen-container::-webkit-scrollbar{display:none}.screen{display:none;width:100%;min-height:100%;padding:60px 24px 40px;color:#fff;animation:fadeIn 0.3s ease}.screen.active{display:flex;flex-direction:column}</style>
-<style>.btn-primary{width:100%;padding:16px;border:none;border-radius:14px;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;font-size:16px;font-weight:600;cursor:pointer;transition:all 0.2s;margin-top:8px}.btn-primary:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(102,126,234,0.4)}.btn-primary:active{transform:scale(0.98)}.btn-secondary{width:100%;padding:16px;border:2px solid rgba(255,255,255,0.15);border-radius:14px;background:transparent;color:#fff;font-size:16px;font-weight:600;cursor:pointer;transition:all 0.2s}.btn-secondary:hover{border-color:#667eea;background:rgba(102,126,234,0.1)}.btn-small{padding:10px 20px;border:none;border-radius:10px;background:rgba(102,126,234,0.2);color:#667eea;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s}.btn-small:hover{background:rgba(102,126,234,0.3)}.btn-text{background:none;border:none;color:rgba(255,255,255,0.5);font-size:13px;cursor:pointer}.btn-text:hover{color:#fff}.back-btn{background:none;border:none;color:rgba(255,255,255,0.5);font-size:20px;cursor:pointer;padding:4px 8px;margin-bottom:12px;transition:color 0.2s;align-self:flex-start}.back-btn:hover{color:#fff}</style>
-<style>.form-group{margin-bottom:16px}.form-label{display:block;font-size:13px;color:rgba(255,255,255,0.5);margin-bottom:6px;font-weight:500}.form-input{width:100%;padding:14px 16px;border:2px solid rgba(255,255,255,0.08);border-radius:12px;background:rgba(255,255,255,0.05);color:#fff;font-size:15px;outline:none;transition:all 0.2s}.form-input:focus{border-color:#667eea;background:rgba(102,126,234,0.05)}.form-input::placeholder{color:rgba(255,255,255,0.25)}.form-row{display:flex;gap:8px}.form-row .form-input{flex:1}.form-row .btn-small{flex-shrink:0;align-self:flex-end;padding:14px 16px}.input-wrapper{position:relative}.input-wrapper .form-input{padding-right:44px}.pw-toggle{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:rgba(255,255,255,0.3);cursor:pointer;font-size:16px}</style>
-<style>.auth-header{text-align:center;margin-bottom:32px;padding-top:20px}.auth-logo{font-size:36px;margin-bottom:8px}.auth-title{font-size:22px;font-weight:700}.auth-subtitle{font-size:13px;color:rgba(255,255,255,0.4);margin-top:4px}.auth-links{display:flex;justify-content:center;gap:20px;margin-top:16px}.auth-divider{display:flex;align-items:center;gap:12px;margin:20px 0;color:rgba(255,255,255,0.25);font-size:12px}.auth-divider::before,.auth-divider::after{content:"";flex:1;height:1px;background:rgba(255,255,255,0.08)}.tab-bar{display:flex;background:rgba(255,255,255,0.05);border-radius:12px;padding:4px;margin-bottom:24px}.tab-item{flex:1;padding:10px;text-align:center;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;color:rgba(255,255,255,0.4);transition:all 0.2s}.tab-item.active{background:#667eea;color:#fff}.step-indicator{display:flex;justify-content:center;gap:8px;margin-bottom:24px}.step-dot{width:32px;height:4px;border-radius:2px;background:rgba(255,255,255,0.1);transition:all 0.3s}.step-dot.active{background:#667eea}.step-dot.done{background:#4ade80}</style>
-<style>.onboarding-screen{justify-content:center;align-items:center;text-align:center;background:linear-gradient(180deg,#0f0f1a 0%,#1a1a3e 100%);padding-top:80px}.onboarding-icon{width:160px;height:160px;margin:0 auto 32px;border-radius:40px;display:flex;justify-content:center;align-items:center;font-size:64px}.ob1-icon{background:linear-gradient(135deg,#667eea,#764ba2)}.ob2-icon{background:linear-gradient(135deg,#f093fb,#f5576c)}.ob3-icon{background:linear-gradient(135deg,#4facfe,#00f2fe)}.onboarding-title{font-size:24px;font-weight:700;margin-bottom:12px}.onboarding-desc{font-size:14px;color:rgba(255,255,255,0.6);line-height:1.6;margin-bottom:40px;padding:0 12px}.dot-indicators{display:flex;gap:8px;justify-content:center;margin-bottom:32px}.dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,0.2);transition:all 0.3s}.dot.active{width:24px;border-radius:4px;background:#667eea}.welcome-screen{justify-content:center;align-items:center;text-align:center;background:linear-gradient(180deg,#0f0f1a 0%,#1a1a3e 50%,#0f0f1a 100%)}.welcome-badge{width:120px;height:120px;border-radius:60px;background:linear-gradient(135deg,#667eea,#764ba2);display:flex;justify-content:center;align-items:center;font-size:56px;margin-bottom:24px;animation:pulse 2s infinite}.welcome-name{font-size:28px;font-weight:700;margin-bottom:8px}.welcome-msg{font-size:15px;color:rgba(255,255,255,0.5);line-height:1.6;margin-bottom:40px}.welcome-code-display{background:rgba(255,255,255,0.05);border-radius:12px;padding:16px 24px;margin-bottom:40px}.welcome-code-label{font-size:12px;color:rgba(255,255,255,0.4);margin-bottom:4px}.welcome-code-value{font-size:20px;font-weight:700;letter-spacing:4px;color:#667eea}</style>
-<style>.agreement-box{background:rgba(255,255,255,0.03);border-radius:14px;padding:16px;margin-bottom:12px}.agreement-item{display:flex;align-items:center;gap:10px;padding:8px 0;cursor:pointer;font-size:14px;color:rgba(255,255,255,0.7)}.agreement-item.all{font-weight:700;color:#fff;font-size:15px;border-bottom:1px solid rgba(255,255,255,0.06);padding-bottom:12px;margin-bottom:4px}.check-circle{width:22px;height:22px;border-radius:50%;border:2px solid rgba(255,255,255,0.15);display:flex;justify-content:center;align-items:center;flex-shrink:0;transition:all 0.2s;font-size:12px}.check-circle.checked{background:#667eea;border-color:#667eea}.sport-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px}.sport-card{background:rgba(255,255,255,0.04);border:2px solid rgba(255,255,255,0.06);border-radius:16px;padding:20px 8px;text-align:center;cursor:pointer;transition:all 0.2s}.sport-card:hover{border-color:rgba(102,126,234,0.3)}.sport-card.selected{border-color:#667eea;background:rgba(102,126,234,0.1)}.sport-card .icon{font-size:18px;font-weight:800;margin-bottom:8px;color:#667eea;letter-spacing:1px}.sport-card .label{font-size:12px;color:rgba(255,255,255,0.7);font-weight:500}.team-code-input{display:flex;gap:8px;justify-content:center;margin:24px 0}.code-box{width:48px;height:56px;border:2px solid rgba(255,255,255,0.1);border-radius:12px;background:rgba(255,255,255,0.04);color:#fff;font-size:22px;font-weight:700;text-align:center;outline:none;transition:all 0.2s;text-transform:uppercase}.code-box:focus{border-color:#667eea;background:rgba(102,126,234,0.08)}</style>
-<style>.home-screen{padding-top:50px}.home-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;padding-top:8px}.home-greeting{font-size:13px;color:rgba(255,255,255,0.4)}.home-name{font-size:22px;font-weight:700}.home-avatar{width:44px;height:44px;border-radius:22px;background:linear-gradient(135deg,#667eea,#764ba2);display:flex;justify-content:center;align-items:center;font-size:18px}.watch-card{background:linear-gradient( 135deg,rgba(102,126,234,0.15),rgba(118,75,162,0.15) );border:1px solid rgba(102,126,234,0.2);border-radius:20px;padding:20px;margin-bottom:20px;cursor:pointer;transition:all 0.3s}.watch-card:hover{border-color:rgba(102,126,234,0.4)}.watch-card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}.watch-card-title{font-size:16px;font-weight:600}.watch-status{display:flex;align-items:center;gap:6px;font-size:12px;padding:4px 10px;border-radius:20px}.watch-status.disconnected{background:rgba(239,68,68,0.15);color:#ef4444}.watch-status.connected{background:rgba(74,222,128,0.15);color:#4ade80}.watch-status .dot-indicator{width:6px;height:6px;border-radius:50%}.watch-status.disconnected .dot-indicator{background:#ef4444}.watch-status.connected .dot-indicator{background:#4ade80;animation:pulse 1.5s infinite}.watch-metrics{display:flex;gap:16px}.watch-metric{flex:1}.watch-metric-label{font-size:11px;color:rgba(255,255,255,0.4);margin-bottom:2px}.watch-metric-value{font-size:20px;font-weight:700}.watch-metric-unit{font-size:12px;color:rgba(255,255,255,0.4)}.section-card{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:20px;padding:20px;margin-bottom:16px}.section-title{font-size:15px;font-weight:600;margin-bottom:14px;display:flex;align-items:center;gap:8px}.intensity-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}.intensity-btn{aspect-ratio:1;border:2px solid rgba(255,255,255,0.08);border-radius:14px;background:rgba(255,255,255,0.03);color:#fff;font-size:18px;font-weight:700;cursor:pointer;transition:all 0.2s;display:flex;justify-content:center;align-items:center}.intensity-btn:hover{border-color:rgba(255,255,255,0.2)}.intensity-btn.selected{transform:scale(1.05)}.intensity-label{display:flex;justify-content:space-between;margin-top:8px;font-size:11px;color:rgba(255,255,255,0.3)}.injury-textarea{width:100%;min-height:100px;padding:14px;border:2px solid rgba(255,255,255,0.06);border-radius:12px;background:rgba(255,255,255,0.03);color:#fff;font-size:14px;font-family:inherit;resize:vertical;outline:none;transition:all 0.2s}.injury-textarea:focus{border-color:#667eea}.injury-textarea::placeholder{color:rgba(255,255,255,0.2)}.injury-tags{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}.injury-tag{padding:6px 14px;border-radius:20px;font-size:12px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.03);color:rgba(255,255,255,0.6);cursor:pointer;transition:all 0.2s}.injury-tag:hover{border-color:#f5576c}.injury-tag.selected{border-color:#f5576c;background:rgba(245,87,108,0.15);color:#f5576c}.team-info{display:flex;justify-content:space-between;align-items:center}.team-badge{display:flex;align-items:center;gap:12px}.team-icon{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#4facfe,#00f2fe);display:flex;justify-content:center;align-items:center;font-size:20px}.team-name{font-size:15px;font-weight:600}.team-code-display{font-size:12px;color:rgba(255,255,255,0.4);letter-spacing:2px;margin-top:2px}.submit-bar{margin-top:20px;margin-bottom:20px}</style>
-<style>.bottom-nav{position:absolute;bottom:0;left:0;right:0;height:70px;background:rgba(15,15,26,0.95);backdrop-filter:blur(20px);border-top:1px solid rgba(255,255,255,0.06);display:flex;justify-content:space-around;align-items:center;padding-bottom:10px;z-index:50}.nav-item{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;opacity:0.4;transition:all 0.2s;background:none;border:none;color:#fff;font-size:10px}.nav-item.active{opacity:1;color:#667eea}.nav-icon{font-size:20px}.nav-svg{display:flex;justify-content:center;align-items:center}</style>
-<style>.toast{position:absolute;top:60px;left:24px;right:24px;background:#4ade80;color:#000;padding:12px 16px;border-radius:12px;font-size:14px;font-weight:600;text-align:center;z-index:200;transform:translateY(-20px);opacity:0;transition:all 0.3s;pointer-events:none}.toast.show{transform:translateY(0);opacity:1}.toast.error{background:#ef4444;color:#fff}.modal-overlay{position:absolute;inset:0;background:rgba(0,0,0,0.7);display:none;justify-content:center;align-items:center;z-index:150;padding:24px}.modal-overlay.show{display:flex}.modal-box{background:#1e1e36;border-radius:20px;padding:28px;width:100%;max-width:340px;text-align:center;animation:fadeIn 0.3s ease}.modal-title{font-size:18px;font-weight:700;color:#fff;margin-bottom:8px}.modal-desc{font-size:13px;color:rgba(255,255,255,0.5);margin-bottom:24px;line-height:1.5}.modal-actions{display:flex;gap:12px}.modal-actions .btn-primary,.modal-actions .btn-secondary{flex:1}</style>
-<style>.policy-list{display:flex;flex-direction:column}.policy-item{display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid rgba(255,255,255,0.05);cursor:pointer;font-size:14px;color:rgba(255,255,255,0.7);transition:color 0.2s}.policy-item:last-child{border-bottom:none}.policy-item:hover{color:#fff}</style>
-<style>.mt-8{margin-top:8px}.mt-16{margin-top:16px}.mt-24{margin-top:24px}.mb-16{margin-bottom:16px}.text-center{text-align:center}.gap-12{gap:12px}.flex-col{display:flex;flex-direction:column}.spacer{flex:1}.visually-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}</style>
-</head>
-<body>
-<h1 class="visually-hidden">LongRun 선수 대시보드</h1>
-<main class="phone-frame" id="app" aria-label="LongRun 모바일 앱">
-<div class="phone-notch"></div>
-<div class="phone-status-bar">
-<span id="statusTime">9:41</span>
-<span>LTE &nbsp; 100%</span>
-</div>
-<div class="phone-home-indicator"></div>
-<div class="toast" id="toast"></div>
-<div class="modal-overlay" id="modal">
-<div class="modal-box">
-<div class="modal-title" id="modalTitle"></div>
-<div class="modal-desc" id="modalDesc"></div>
-<div class="modal-actions" id="modalActions"></div>
-</div>
-</div>
-<div class="screen-container">
-<div class="screen onboarding-screen active" id="screen-ob1">
-<div class="onboarding-icon ob1-icon">W</div>
-<div class="onboarding-title">실시간 생체 데이터</div>
-<div class="onboarding-desc">스마트워치와 연동하여 심박수, 산소포화도 등<br>실시간 생체 데이터를 확인하세요</div>
-<div class="dot-indicators">
-<div class="dot active"></div>
-<div class="dot"></div>
-<div class="dot"></div>
-</div>
-<button type="button" class="btn-primary" onclick="goScreen('ob2')" style="width:80%">다음</button>
-<button type="button" class="btn-text mt-8" onclick="goScreen('login')">건너뛰기</button>
-</div>
-<div class="screen onboarding-screen" id="screen-ob2">
-<div class="onboarding-icon ob2-icon">R</div>
-<div class="onboarding-title">운동 강도 관리</div>
-<div class="onboarding-desc">매일 운동 강도를 기록하고<br>컨디션 변화를 한눈에 파악하세요</div>
-<div class="dot-indicators">
-<div class="dot"></div>
-<div class="dot active"></div>
-<div class="dot"></div>
-</div>
-<button type="button" class="btn-primary" onclick="goScreen('ob3')" style="width:80%">다음</button>
-<button type="button" class="btn-text mt-8" onclick="goScreen('login')">건너뛰기</button>
-</div>
-<div class="screen onboarding-screen" id="screen-ob3">
-<div class="onboarding-icon ob3-icon">T</div>
-<div class="onboarding-title">팀과 함께 성장</div>
-<div class="onboarding-desc">팀 코드로 소속팀과 연결되어<br>코치진과 실시간으로 소통하세요</div>
-<div class="dot-indicators">
-<div class="dot"></div>
-<div class="dot"></div>
-<div class="dot active"></div>
-</div>
-<button type="button" class="btn-primary" onclick="goScreen('login')" style="width:80%">시작하기</button>
-</div>
-<div class="screen" id="screen-login">
-<div class="auth-header">
-<div class="auth-logo" style="font-size:28px;font-weight:800;letter-spacing:-1px">LR</div>
-<div class="auth-title">LongRun</div>
-<div class="auth-subtitle">선수 대시보드</div>
-</div>
-<div class="form-group">
-<label class="form-label">이메일</label>
-<input class="form-input" type="email" id="loginEmail" placeholder="이메일을 입력하세요">
-</div>
-<div class="form-group">
-<label class="form-label">비밀번호</label>
-<div class="input-wrapper">
-<input class="form-input" type="password" id="loginPw" placeholder="비밀번호를 입력하세요">
-<button type="button" class="pw-toggle" onclick="togglePw('loginPw',this)">&#x2022;&#x2022;</button>
-</div>
-</div>
-<button type="button" class="btn-primary mt-8" onclick="handleLogin()">로그인</button>
-<div class="auth-links mt-16">
-<button type="button" class="btn-text" onclick="goScreen('findAccount')">아이디/비번 찾기</button>
-<span style="color:rgba(255,255,255,0.15)">|</span>
-<button type="button" class="btn-text" onclick="goScreen('signup1')">회원가입</button>
-</div>
-<div class="auth-divider">또는</div>
-<button type="button" class="btn-secondary" onclick="showToast('소셜 로그인은 준비 중입니다')">
-소셜 계정으로 로그인
-</button>
-</div>
-<div class="screen" id="screen-findAccount">
-<button type="button" class="back-btn" onclick="goScreen('login')">← 뒤로</button>
-<div class="auth-header">
-<div class="auth-title">계정 찾기</div>
-</div>
-<div class="tab-bar">
-<div class="tab-item active" onclick="switchFindTab(0,this)">아이디 찾기</div>
-<div class="tab-item" onclick="switchFindTab(1,this)">비밀번호 찾기</div>
-</div>
-<div id="findTab0">
-<div class="form-group">
-<label class="form-label">전화번호</label>
-<div class="form-row">
-<input class="form-input" type="tel" placeholder="010-0000-0000">
-<button type="button" class="btn-small" onclick="showToast('인증번호가 발송되었습니다')">인증</button>
-</div>
-</div>
-<div class="form-group">
-<label class="form-label">인증번호</label>
-<input class="form-input" type="text" placeholder="인증번호 6자리">
-</div>
-<button type="button" class="btn-primary mt-16" onclick="showToast('등록된 이메일: user@example.com')">아이디 찾기</button>
-</div>
-<div id="findTab1" style="display:none">
-<div class="form-group">
-<label class="form-label">이메일</label>
-<input class="form-input" type="email" placeholder="가입한 이메일을 입력하세요">
-</div>
-<div class="form-group">
-<label class="form-label">전화번호</label>
-<div class="form-row">
-<input class="form-input" type="tel" placeholder="010-0000-0000">
-<button type="button" class="btn-small" onclick="showToast('인증번호가 발송되었습니다')">인증</button>
-</div>
-</div>
-<div class="form-group">
-<label class="form-label">인증번호</label>
-<input class="form-input" type="text" placeholder="인증번호 6자리">
-</div>
-<button type="button" class="btn-primary mt-16" onclick="showToast('임시 비밀번호가 이메일로 발송되었습니다')">비밀번호 찾기</button>
-</div>
-</div>
-<div class="screen" id="screen-signup1">
-<button type="button" class="back-btn" onclick="goScreen('login')">← 뒤로</button>
-<div class="step-indicator">
-<div class="step-dot active"></div>
-<div class="step-dot"></div>
-<div class="step-dot"></div>
-<div class="step-dot"></div>
-</div>
-<div class="auth-title mb-16">기본 정보</div>
-<div class="form-group">
-<label class="form-label">닉네임</label>
-<input class="form-input" type="text" id="signNick" placeholder="2~10자 닉네임">
-</div>
-<div class="form-group">
-<label class="form-label">이메일</label>
-<div class="form-row">
-<input class="form-input" type="email" id="signEmail" placeholder="이메일 주소">
-<button type="button" class="btn-small" onclick="showToast('사용 가능한 이메일입니다')">중복확인</button>
-</div>
-</div>
-<div class="form-group">
-<label class="form-label">비밀번호</label>
-<div class="input-wrapper">
-<input class="form-input" type="password" id="signPw" placeholder="영문+숫자+특수문자 8자 이상">
-<button type="button" class="pw-toggle" onclick="togglePw('signPw',this)">&#x2022;&#x2022;</button>
-</div>
-</div>
-<div class="form-group">
-<label class="form-label">비밀번호 확인</label>
-<div class="input-wrapper">
-<input class="form-input" type="password" id="signPw2" placeholder="비밀번호 재입력">
-<button type="button" class="pw-toggle" onclick="togglePw('signPw2',this)">&#x2022;&#x2022;</button>
-</div>
-</div>
-<div class="form-group">
-<label class="form-label">전화번호 인증</label>
-<div class="form-row">
-<input class="form-input" type="tel" id="signPhone" placeholder="010-0000-0000">
-<button type="button" class="btn-small" onclick="startPhoneVerify()">인증요청</button>
-</div>
-</div>
-<div class="form-group" id="verifyCodeGroup" style="display:none">
-<div class="form-row">
-<input class="form-input" type="text" id="signVerifyCode" placeholder="인증번호 6자리">
-<button type="button" class="btn-small" onclick="confirmVerify()">확인</button>
-</div>
-<div style="font-size:12px;color:#ef4444;margin-top:4px" id="verifyTimer"></div>
-</div>
-<div class="spacer"></div>
-<button type="button" class="btn-primary mt-16" onclick="goSignup2()">다음</button>
-</div>
-<div class="screen" id="screen-signup2">
-<button type="button" class="back-btn" onclick="goScreen('signup1')">← 뒤로</button>
-<div class="step-indicator">
-<div class="step-dot done"></div>
-<div class="step-dot active"></div>
-<div class="step-dot"></div>
-<div class="step-dot"></div>
-</div>
-<div class="auth-title mb-16">서비스 이용 동의</div>
-<div class="agreement-box">
-<div class="agreement-item all" onclick="toggleAllAgreements()">
-<div class="check-circle" id="agreeAll">&#10003;</div>
-<span>전체 동의</span>
-</div>
-<div class="agreement-item" onclick="toggleAgreement(0)">
-<div class="check-circle" data-agree="0">&#10003;</div>
-<span>[필수] 서비스 이용약관</span>
-</div>
-<div class="agreement-item" onclick="toggleAgreement(1)">
-<div class="check-circle" data-agree="1">&#10003;</div>
-<span>[필수] 개인정보 수집 및 이용</span>
-</div>
-<div class="agreement-item" onclick="toggleAgreement(2)">
-<div class="check-circle" data-agree="2">&#10003;</div>
-<span>[필수] 건강정보 제3자 제공</span>
-</div>
-<div class="agreement-item" onclick="toggleAgreement(3)">
-<div class="check-circle" data-agree="3">&#10003;</div>
-<span>[필수] 위치정보 이용약관</span>
-</div>
-<div class="agreement-item" onclick="toggleAgreement(4)">
-<div class="check-circle" data-agree="4">&#10003;</div>
-<span>[선택] 마케팅 정보 수신</span>
-</div>
-</div>
-<div class="spacer"></div>
-<button type="button" class="btn-primary mt-16" onclick="goSignup3()">다음</button>
-</div>
-<div class="screen" id="screen-signup3">
-<button type="button" class="back-btn" onclick="goScreen('signup2')">← 뒤로</button>
-<div class="step-indicator">
-<div class="step-dot done"></div>
-<div class="step-dot done"></div>
-<div class="step-dot active"></div>
-<div class="step-dot"></div>
-</div>
-<div class="auth-title mb-16">운동 종목 선택</div>
-<div style="font-size:13px;color:rgba(255,255,255,0.4);margin-bottom:20px">주 종목을 선택해주세요</div>
-<div class="sport-grid">
-<div class="sport-card" onclick="selectSport(this,'철인3종')"><div class="icon">TRI</div><div class="label">철인3종</div></div>
-<div class="sport-card" onclick="selectSport(this,'봅슬레이')"><div class="icon">BOB</div><div class="label">봅슬레이</div></div>
-<div class="sport-card" onclick="selectSport(this,'스켈레톤')"><div class="icon">SKL</div><div class="label">스켈레톤</div></div>
-<div class="sport-card" onclick="selectSport(this,'태권도')"><div class="icon">TKD</div><div class="label">태권도</div></div>
-<div class="sport-card" onclick="selectSport(this,'축구')"><div class="icon">FC</div><div class="label">축구</div></div>
-</div>
-<div class="spacer"></div>
-<button type="button" class="btn-primary mt-16" onclick="goSignup4()">다음</button>
-</div>
-<div class="screen" id="screen-signup4" style="align-items:center;text-align:center">
-<button type="button" class="back-btn" onclick="goScreen('signup3')" style="align-self:flex-start">← 뒤로</button>
-<div class="step-indicator">
-<div class="step-dot done"></div>
-<div class="step-dot done"></div>
-<div class="step-dot done"></div>
-<div class="step-dot active"></div>
-</div>
-<div class="auth-title mb-16">팀 코드 입력</div>
-<div style="font-size:13px;color:rgba(255,255,255,0.4);margin-bottom:8px">코치에게 받은 팀 코드를 입력하세요</div>
-<div class="team-code-input">
-<input class="code-box" maxlength="1" oninput="codeNext(this,0)" id="tc0">
-<input class="code-box" maxlength="1" oninput="codeNext(this,1)" id="tc1">
-<input class="code-box" maxlength="1" oninput="codeNext(this,2)" id="tc2">
-<input class="code-box" maxlength="1" oninput="codeNext(this,3)" id="tc3">
-<input class="code-box" maxlength="1" oninput="codeNext(this,4)" id="tc4">
-<input class="code-box" maxlength="1" oninput="codeNext(this,5)" id="tc5">
-</div>
-<div style="font-size:12px;color:rgba(255,255,255,0.3);margin-bottom:32px">팀 코드가 없으면 건너뛸 수 있습니다</div>
-<button type="button" class="btn-primary" onclick="completeSignup()" style="width:80%">가입 완료</button>
-<button type="button" class="btn-text mt-8" onclick="completeSignup()">나중에 입력하기</button>
-</div>
-<div class="screen welcome-screen" id="screen-welcome">
-<div class="welcome-badge" style="font-size:36px;font-weight:800">LR</div>
-<div class="welcome-name" id="welcomeName">환영합니다!</div>
-<div class="welcome-msg">
-LongRun 선수 대시보드에 오신 것을 환영합니다.<br>
-지금부터 더 스마트한 훈련을 시작하세요!
-</div>
-<div class="welcome-code-display">
-<div class="welcome-code-label">나의 선수 고유코드</div>
-<div class="welcome-code-value" id="athleteCode">LR-0000</div>
-</div>
-<button type="button" class="btn-primary" onclick="goScreen('home')" style="width:80%">시작하기</button>
-</div>
-<div class="screen home-screen" id="screen-home" style="padding-bottom:90px">
-<div class="home-header">
-<div>
-<div class="home-greeting">안녕하세요</div>
-<div class="home-name" id="homeName">선수님</div>
-</div>
-<div class="home-avatar" style="font-size:14px;font-weight:700;cursor:pointer" onclick="goScreen('profile')" id="homeAvatar">P</div>
-</div>
-<div class="watch-card" onclick="toggleWatch()">
-<div class="watch-card-header">
-<div class="watch-card-title">스마트워치</div>
-<div class="watch-status disconnected" id="watchStatus">
-<div class="dot-indicator"></div>
-<span>연결 안됨</span>
-</div>
-</div>
-<button type="button" id="manualSyncBtn" class="btn-small" style="display:none;margin-top:10px;width:100%" onclick="manualSync(event)">지금 동기화</button>
-<div class="watch-metrics" id="watchMetrics" style="display:none">
-<div class="watch-metric">
-<div class="watch-metric-label">심박수</div>
-<div class="watch-metric-value" id="hrValue">--</div>
-<div class="watch-metric-unit">BPM</div>
-</div>
-<div class="watch-metric">
-<div class="watch-metric-label">산소포화도</div>
-<div class="watch-metric-value" id="spo2Value">--</div>
-<div class="watch-metric-unit">%</div>
-</div>
-<div class="watch-metric">
-<div class="watch-metric-label">체온</div>
-<div class="watch-metric-value" id="tempValue">--</div>
-<div class="watch-metric-unit">°C</div>
-</div>
-</div>
-</div>
-<div class="section-card">
-<div class="section-title" style="justify-content:space-between">
-<span>오늘의 운동 강도</span>
-<button type="button" class="btn-small" id="intensityResetBtn" style="display:none" onclick="resetIntensity()">다시 선택</button>
-</div>
-<div id="intensitySelector">
-<div class="intensity-grid">
-<button type="button" class="intensity-btn" onclick="selectIntensity(1,this)" style="--c:#4ade80">1</button>
-<button type="button" class="intensity-btn" onclick="selectIntensity(2,this)" style="--c:#6ee7a0">2</button>
-<button type="button" class="intensity-btn" onclick="selectIntensity(3,this)" style="--c:#a3e635">3</button>
-<button type="button" class="intensity-btn" onclick="selectIntensity(4,this)" style="--c:#facc15">4</button>
-<button type="button" class="intensity-btn" onclick="selectIntensity(5,this)" style="--c:#fbbf24">5</button>
-<button type="button" class="intensity-btn" onclick="selectIntensity(6,this)" style="--c:#fb923c">6</button>
-<button type="button" class="intensity-btn" onclick="selectIntensity(7,this)" style="--c:#f97316">7</button>
-<button type="button" class="intensity-btn" onclick="selectIntensity(8,this)" style="--c:#ef4444">8</button>
-<button type="button" class="intensity-btn" onclick="selectIntensity(9,this)" style="--c:#dc2626">9</button>
-<button type="button" class="intensity-btn" onclick="selectIntensity(10,this)" style="--c:#b91c1c">10</button>
-</div>
-<div class="intensity-label">
-<span>가벼움</span>
-<span>보통</span>
-<span>매우 힘듦</span>
-</div>
-</div>
-<div id="intensityResult" style="display:none;text-align:center;padding:12px 0">
-<div style="font-size:40px;font-weight:800;margin-bottom:4px" id="intensityResultValue">-</div>
-<div style="font-size:12px;color:rgba(255,255,255,0.4)" id="intensityResultTime">선택 시간: --:--</div>
-</div>
-</div>
-<div class="section-card">
-<div class="section-title">부상 내용</div>
-<div class="injury-tags">
-<span class="injury-tag" onclick="toggleInjuryTag(this)">무릎</span>
-<span class="injury-tag" onclick="toggleInjuryTag(this)">발목</span>
-<span class="injury-tag" onclick="toggleInjuryTag(this)">어깨</span>
-<span class="injury-tag" onclick="toggleInjuryTag(this)">허리</span>
-<span class="injury-tag" onclick="toggleInjuryTag(this)">손목</span>
-<span class="injury-tag" onclick="toggleInjuryTag(this)">햄스트링</span>
-</div>
-<textarea class="injury-textarea" placeholder="부상 상세 내용을 입력하세요...&#10;예) 왼쪽 무릎 안쪽 통증, 달리기 시 악화"></textarea>
-</div>
-<div class="section-card">
-<div class="section-title">소속 팀</div>
-<div class="team-info">
-<div class="team-badge">
-<div class="team-icon" style="font-size:16px;font-weight:800">T</div>
-<div>
-<div class="team-name" id="homeTeamName">팀 미등록</div>
-<div class="team-code-display" id="homeTeamCode">-</div>
-</div>
-</div>
-<button type="button" class="btn-small" onclick="showTeamCodeModal()">변경</button>
-</div>
-</div>
-<div class="submit-bar">
-<button type="button" class="btn-primary" onclick="submitDaily()">오늘의 기록 제출</button>
-</div>
-<div class="bottom-nav">
-<button type="button" class="nav-item active"><div class="nav-icon nav-svg"><svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20" role="img" aria-label="홈"><title>홈</title><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0a1 1 0 01-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1h-2z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>홈</button>
-</div>
-</div>
-<div class="screen" id="screen-profile" style="padding-bottom:40px">
-<button type="button" class="back-btn" onclick="goScreen('home')">← 뒤로</button>
-<div style="text-align:center;margin-bottom:28px">
-<div style="position:relative;display:inline-block">
-<div id="profileAvatar" style="width:88px;height:88px;border-radius:44px;background:linear-gradient(135deg,#667eea,#764ba2);display:flex;justify-content:center;align-items:center;font-size:28px;font-weight:700;margin:0 auto;overflow:hidden;cursor:pointer" onclick="document.getElementById('profilePhotoInput').click()">
-<span id="profileAvatarText">P</span>
-<img id="profileAvatarImg" alt="프로필 사진" style="width:100%;height:100%;object-fit:cover;display:none;position:absolute;inset:0">
-</div>
-<div style="position:absolute;bottom:0;right:0;width:28px;height:28px;border-radius:14px;background:#667eea;display:flex;justify-content:center;align-items:center;cursor:pointer;border:3px solid #0f0f1a" onclick="document.getElementById('profilePhotoInput').click()">
-<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" role="img" aria-label="사진 변경"><title>사진 변경</title><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
-</div>
-<input type="file" id="profilePhotoInput" accept="image/*" style="display:none" onchange="handleProfilePhoto(this)">
-</div>
-<div style="font-size:18px;font-weight:700;margin-top:12px" id="profileName">선수님</div>
-</div>
-<div class="section-card">
-<div class="section-title">이름 변경</div>
-<div class="form-row">
-<input class="form-input" type="text" id="profileNickInput" placeholder="새 이름 입력">
-<button type="button" class="btn-small" onclick="changeProfileName()">변경</button>
-</div>
-</div>
-<div class="section-card">
-<div class="section-title">선수 고유코드</div>
-<div style="display:flex;justify-content:space-between;align-items:center">
-<div style="font-size:20px;font-weight:700;letter-spacing:3px;color:#667eea" id="profileAthleteCode">LR-0000</div>
-<button type="button" class="btn-small" onclick="copyAthleteCode()">복사</button>
-</div>
-</div>
-<div class="section-card">
-<div class="section-title">약관 및 정책</div>
-<div class="policy-list">
-<div class="policy-item" onclick="showPolicyModal('서비스 이용약관')">
-<span>서비스 이용약관</span>
-<span style="color:rgba(255,255,255,0.3);font-size:14px">></span>
-</div>
-<div class="policy-item" onclick="showPolicyModal('개인정보 수집 및 이용')">
-<span>개인정보 수집 및 이용</span>
-<span style="color:rgba(255,255,255,0.3);font-size:14px">></span>
-</div>
-<div class="policy-item" onclick="showPolicyModal('건강정보 제3자 제공')">
-<span>건강정보 제3자 제공</span>
-<span style="color:rgba(255,255,255,0.3);font-size:14px">></span>
-</div>
-<div class="policy-item" onclick="showPolicyModal('위치정보 이용약관')">
-<span>위치정보 이용약관</span>
-<span style="color:rgba(255,255,255,0.3);font-size:14px">></span>
-</div>
-<div class="policy-item" onclick="showPolicyModal('마케팅 정보 수신')">
-<span>마케팅 정보 수신</span>
-<span style="color:rgba(255,255,255,0.3);font-size:14px">></span>
-</div>
-</div>
-</div>
-<button type="button" class="btn-secondary" style="margin-top:16px;border-color:rgba(239,68,68,0.3);color:#ef4444" onclick="handleLogout()">로그아웃</button>
-</div>
-</div>
-</main>
-<script>class State {
+<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>LongRun 선수 대시보드</title><style>*{margin:0;padding:0;box-sizing:border-box}body{background:#1a1a2e;display:flex;justify-content:center;align-items:center;min-height:100vh;font-family:"Segoe UI",sans-serif}@keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}@keyframes slideIn{from{opacity:0;transform:translateX(40px)}to{opacity:1;transform:translateX(0)}}@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}</style><style>.phone-frame{width:393px;height:852px;border:8px solid #2d2d44;border-radius:44px;background:#0f0f1a;overflow:hidden;position:relative;box-shadow:0 0 60px rgba(100,100,255,0.15),inset 0 0 30px rgba(0,0,0,0.3)}.phone-notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:150px;height:28px;background:#2d2d44;border-radius:0 0 18px 18px;z-index:100}.phone-status-bar{position:absolute;top:0;left:0;right:0;height:50px;display:flex;justify-content:space-between;align-items:center;padding:0 24px;z-index:99;color:#fff;font-size:12px;font-weight:600}.phone-home-indicator{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:134px;height:5px;background:rgba(255,255,255,0.3);border-radius:3px;z-index:100}.screen-container{width:100%;height:100%;overflow-y:auto;overflow-x:hidden;scrollbar-width:none}.screen-container::-webkit-scrollbar{display:none}.screen{display:none;width:100%;min-height:100%;padding:60px 24px 40px;color:#fff;animation:fadeIn 0.3s ease}.screen.active{display:flex;flex-direction:column}</style><style>.btn-primary{width:100%;padding:16px;border:none;border-radius:14px;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;font-size:16px;font-weight:600;cursor:pointer;transition:all 0.2s;margin-top:8px}.btn-primary:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(102,126,234,0.4)}.btn-primary:active{transform:scale(0.98)}.btn-secondary{width:100%;padding:16px;border:2px solid rgba(255,255,255,0.15);border-radius:14px;background:transparent;color:#fff;font-size:16px;font-weight:600;cursor:pointer;transition:all 0.2s}.btn-secondary:hover{border-color:#667eea;background:rgba(102,126,234,0.1)}.btn-small{padding:10px 20px;border:none;border-radius:10px;background:rgba(102,126,234,0.2);color:#667eea;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s}.btn-small:hover{background:rgba(102,126,234,0.3)}.btn-text{background:none;border:none;color:rgba(255,255,255,0.5);font-size:13px;cursor:pointer}.btn-text:hover{color:#fff}.back-btn{background:none;border:none;color:rgba(255,255,255,0.5);font-size:20px;cursor:pointer;padding:4px 8px;margin-bottom:12px;transition:color 0.2s;align-self:flex-start}.back-btn:hover{color:#fff}</style><style>.form-group{margin-bottom:16px}.form-label{display:block;font-size:13px;color:rgba(255,255,255,0.5);margin-bottom:6px;font-weight:500}.form-input{width:100%;padding:14px 16px;border:2px solid rgba(255,255,255,0.08);border-radius:12px;background:rgba(255,255,255,0.05);color:#fff;font-size:15px;outline:none;transition:all 0.2s}.form-input:focus{border-color:#667eea;background:rgba(102,126,234,0.05)}.form-input::placeholder{color:rgba(255,255,255,0.25)}.form-row{display:flex;gap:8px}.form-row .form-input{flex:1}.form-row .btn-small{flex-shrink:0;align-self:flex-end;padding:14px 16px}.input-wrapper{position:relative}.input-wrapper .form-input{padding-right:44px}.pw-toggle{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:rgba(255,255,255,0.3);cursor:pointer;font-size:16px}</style><style>.auth-header{text-align:center;margin-bottom:32px;padding-top:20px}.auth-logo{font-size:36px;margin-bottom:8px}.auth-title{font-size:22px;font-weight:700}.auth-subtitle{font-size:13px;color:rgba(255,255,255,0.4);margin-top:4px}.auth-links{display:flex;justify-content:center;gap:20px;margin-top:16px}.auth-divider{display:flex;align-items:center;gap:12px;margin:20px 0;color:rgba(255,255,255,0.25);font-size:12px}.auth-divider::before,.auth-divider::after{content:"";flex:1;height:1px;background:rgba(255,255,255,0.08)}.tab-bar{display:flex;background:rgba(255,255,255,0.05);border-radius:12px;padding:4px;margin-bottom:24px}.tab-item{flex:1;padding:10px;text-align:center;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;color:rgba(255,255,255,0.4);transition:all 0.2s}.tab-item.active{background:#667eea;color:#fff}.step-indicator{display:flex;justify-content:center;gap:8px;margin-bottom:24px}.step-dot{width:32px;height:4px;border-radius:2px;background:rgba(255,255,255,0.1);transition:all 0.3s}.step-dot.active{background:#667eea}.step-dot.done{background:#4ade80}</style><style>.onboarding-screen{justify-content:center;align-items:center;text-align:center;background:linear-gradient(180deg,#0f0f1a 0%,#1a1a3e 100%);padding-top:80px}.onboarding-icon{width:160px;height:160px;margin:0 auto 32px;border-radius:40px;display:flex;justify-content:center;align-items:center;font-size:64px}.ob1-icon{background:linear-gradient(135deg,#667eea,#764ba2)}.ob2-icon{background:linear-gradient(135deg,#f093fb,#f5576c)}.ob3-icon{background:linear-gradient(135deg,#4facfe,#00f2fe)}.onboarding-title{font-size:24px;font-weight:700;margin-bottom:12px}.onboarding-desc{font-size:14px;color:rgba(255,255,255,0.6);line-height:1.6;margin-bottom:40px;padding:0 12px}.dot-indicators{display:flex;gap:8px;justify-content:center;margin-bottom:32px}.dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,0.2);transition:all 0.3s}.dot.active{width:24px;border-radius:4px;background:#667eea}.welcome-screen{justify-content:center;align-items:center;text-align:center;background:linear-gradient(180deg,#0f0f1a 0%,#1a1a3e 50%,#0f0f1a 100%)}.welcome-badge{width:120px;height:120px;border-radius:60px;background:linear-gradient(135deg,#667eea,#764ba2);display:flex;justify-content:center;align-items:center;font-size:56px;margin-bottom:24px;animation:pulse 2s infinite}.welcome-name{font-size:28px;font-weight:700;margin-bottom:8px}.welcome-msg{font-size:15px;color:rgba(255,255,255,0.5);line-height:1.6;margin-bottom:40px}.welcome-code-display{background:rgba(255,255,255,0.05);border-radius:12px;padding:16px 24px;margin-bottom:40px}.welcome-code-label{font-size:12px;color:rgba(255,255,255,0.4);margin-bottom:4px}.welcome-code-value{font-size:20px;font-weight:700;letter-spacing:4px;color:#667eea}</style><style>.agreement-box{background:rgba(255,255,255,0.03);border-radius:14px;padding:16px;margin-bottom:12px}.agreement-item{display:flex;align-items:center;gap:10px;padding:8px 0;cursor:pointer;font-size:14px;color:rgba(255,255,255,0.7)}.agreement-item.all{font-weight:700;color:#fff;font-size:15px;border-bottom:1px solid rgba(255,255,255,0.06);padding-bottom:12px;margin-bottom:4px}.check-circle{width:22px;height:22px;border-radius:50%;border:2px solid rgba(255,255,255,0.15);display:flex;justify-content:center;align-items:center;flex-shrink:0;transition:all 0.2s;font-size:12px}.check-circle.checked{background:#667eea;border-color:#667eea}.sport-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px}.sport-card{background:rgba(255,255,255,0.04);border:2px solid rgba(255,255,255,0.06);border-radius:16px;padding:20px 8px;text-align:center;cursor:pointer;transition:all 0.2s}.sport-card:hover{border-color:rgba(102,126,234,0.3)}.sport-card.selected{border-color:#667eea;background:rgba(102,126,234,0.1)}.sport-card .icon{font-size:18px;font-weight:800;margin-bottom:8px;color:#667eea;letter-spacing:1px}.sport-card .label{font-size:12px;color:rgba(255,255,255,0.7);font-weight:500}.team-code-input{display:flex;gap:8px;justify-content:center;margin:24px 0}.code-box{width:48px;height:56px;border:2px solid rgba(255,255,255,0.1);border-radius:12px;background:rgba(255,255,255,0.04);color:#fff;font-size:22px;font-weight:700;text-align:center;outline:none;transition:all 0.2s;text-transform:uppercase}.code-box:focus{border-color:#667eea;background:rgba(102,126,234,0.08)}</style><style>.home-screen{padding-top:50px}.home-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;padding-top:8px}.home-greeting{font-size:13px;color:rgba(255,255,255,0.4)}.home-name{font-size:22px;font-weight:700}.home-avatar{width:44px;height:44px;border-radius:22px;background:linear-gradient(135deg,#667eea,#764ba2);display:flex;justify-content:center;align-items:center;font-size:18px}.watch-card{background:linear-gradient( 135deg,rgba(102,126,234,0.15),rgba(118,75,162,0.15) );border:1px solid rgba(102,126,234,0.2);border-radius:20px;padding:20px;margin-bottom:20px;cursor:pointer;transition:all 0.3s}.watch-card:hover{border-color:rgba(102,126,234,0.4)}.watch-card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}.watch-card-title{font-size:16px;font-weight:600}.watch-status{display:flex;align-items:center;gap:6px;font-size:12px;padding:4px 10px;border-radius:20px}.watch-status.disconnected{background:rgba(239,68,68,0.15);color:#ef4444}.watch-status.connected{background:rgba(74,222,128,0.15);color:#4ade80}.watch-status .dot-indicator{width:6px;height:6px;border-radius:50%}.watch-status.disconnected .dot-indicator{background:#ef4444}.watch-status.connected .dot-indicator{background:#4ade80;animation:pulse 1.5s infinite}.watch-metrics{display:flex;gap:16px}.watch-metric{flex:1}.watch-metric-label{font-size:11px;color:rgba(255,255,255,0.4);margin-bottom:2px}.watch-metric-value{font-size:20px;font-weight:700}.watch-metric-unit{font-size:12px;color:rgba(255,255,255,0.4)}.section-card{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:20px;padding:20px;margin-bottom:16px}.section-title{font-size:15px;font-weight:600;margin-bottom:14px;display:flex;align-items:center;gap:8px}.intensity-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}.intensity-btn{aspect-ratio:1;border:2px solid rgba(255,255,255,0.08);border-radius:14px;background:rgba(255,255,255,0.03);color:#fff;font-size:18px;font-weight:700;cursor:pointer;transition:all 0.2s;display:flex;justify-content:center;align-items:center}.intensity-btn:hover{border-color:rgba(255,255,255,0.2)}.intensity-btn.selected{transform:scale(1.05)}.intensity-label{display:flex;justify-content:space-between;margin-top:8px;font-size:11px;color:rgba(255,255,255,0.3)}.injury-textarea{width:100%;min-height:100px;padding:14px;border:2px solid rgba(255,255,255,0.06);border-radius:12px;background:rgba(255,255,255,0.03);color:#fff;font-size:14px;font-family:inherit;resize:vertical;outline:none;transition:all 0.2s}.injury-textarea:focus{border-color:#667eea}.injury-textarea::placeholder{color:rgba(255,255,255,0.2)}.injury-tags{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}.injury-tag{padding:6px 14px;border-radius:20px;font-size:12px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.03);color:rgba(255,255,255,0.6);cursor:pointer;transition:all 0.2s}.injury-tag:hover{border-color:#f5576c}.injury-tag.selected{border-color:#f5576c;background:rgba(245,87,108,0.15);color:#f5576c}.team-info{display:flex;justify-content:space-between;align-items:center}.team-badge{display:flex;align-items:center;gap:12px}.team-icon{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#4facfe,#00f2fe);display:flex;justify-content:center;align-items:center;font-size:20px}.team-name{font-size:15px;font-weight:600}.team-code-display{font-size:12px;color:rgba(255,255,255,0.4);letter-spacing:2px;margin-top:2px}.submit-bar{margin-top:20px;margin-bottom:20px}</style><style>.bottom-nav{position:absolute;bottom:0;left:0;right:0;height:70px;background:rgba(15,15,26,0.95);backdrop-filter:blur(20px);border-top:1px solid rgba(255,255,255,0.06);display:flex;justify-content:space-around;align-items:center;padding-bottom:10px;z-index:50}.nav-item{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;opacity:0.4;transition:all 0.2s;background:none;border:none;color:#fff;font-size:10px}.nav-item.active{opacity:1;color:#667eea}.nav-icon{font-size:20px}.nav-svg{display:flex;justify-content:center;align-items:center}</style><style>.toast{position:absolute;top:60px;left:24px;right:24px;background:#4ade80;color:#000;padding:12px 16px;border-radius:12px;font-size:14px;font-weight:600;text-align:center;z-index:200;transform:translateY(-20px);opacity:0;transition:all 0.3s;pointer-events:none}.toast.show{transform:translateY(0);opacity:1}.toast.error{background:#ef4444;color:#fff}.modal-overlay{position:absolute;inset:0;background:rgba(0,0,0,0.7);display:none;justify-content:center;align-items:center;z-index:150;padding:24px}.modal-overlay.show{display:flex}.modal-box{background:#1e1e36;border-radius:20px;padding:28px;width:100%;max-width:340px;text-align:center;animation:fadeIn 0.3s ease}.modal-title{font-size:18px;font-weight:700;color:#fff;margin-bottom:8px}.modal-desc{font-size:13px;color:rgba(255,255,255,0.5);margin-bottom:24px;line-height:1.5}.modal-actions{display:flex;gap:12px}.modal-actions .btn-primary,.modal-actions .btn-secondary{flex:1}</style><style>.policy-list{display:flex;flex-direction:column}.policy-item{display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid rgba(255,255,255,0.05);cursor:pointer;font-size:14px;color:rgba(255,255,255,0.7);transition:color 0.2s}.policy-item:last-child{border-bottom:none}.policy-item:hover{color:#fff}</style><style>.mt-8{margin-top:8px}.mt-16{margin-top:16px}.mt-24{margin-top:24px}.mb-16{margin-bottom:16px}.text-center{text-align:center}.gap-12{gap:12px}.flex-col{display:flex;flex-direction:column}.spacer{flex:1}.visually-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}</style></head><body><h1 class="visually-hidden">LongRun 선수 대시보드</h1><main class="phone-frame" id="app" aria-label="LongRun 모바일 앱"><div class="phone-notch"></div><div class="phone-status-bar"><span id="statusTime">9:41</span><span>LTE &nbsp; 100%</span></div><div class="phone-home-indicator"></div><div class="toast" id="toast"></div><div class="modal-overlay" id="modal"><div class="modal-box"><div class="modal-title" id="modalTitle"></div><div class="modal-desc" id="modalDesc"></div><div class="modal-actions" id="modalActions"></div></div></div><div class="screen-container"><div class="screen onboarding-screen active" id="screen-ob1"><div class="onboarding-icon ob1-icon">W</div><div class="onboarding-title">실시간 생체 데이터</div><div class="onboarding-desc">스마트워치와 연동하여 심박수, 산소포화도 등<br>실시간 생체 데이터를 확인하세요</div><div class="dot-indicators"><div class="dot active"></div><div class="dot"></div><div class="dot"></div></div><button type="button" class="btn-primary" onclick="goScreen('ob2')" style="width:80%">다음</button><button type="button" class="btn-text mt-8" onclick="goScreen('login')">건너뛰기</button></div><div class="screen onboarding-screen" id="screen-ob2"><div class="onboarding-icon ob2-icon">R</div><div class="onboarding-title">운동 강도 관리</div><div class="onboarding-desc">매일 운동 강도를 기록하고<br>컨디션 변화를 한눈에 파악하세요</div><div class="dot-indicators"><div class="dot"></div><div class="dot active"></div><div class="dot"></div></div><button type="button" class="btn-primary" onclick="goScreen('ob3')" style="width:80%">다음</button><button type="button" class="btn-text mt-8" onclick="goScreen('login')">건너뛰기</button></div><div class="screen onboarding-screen" id="screen-ob3"><div class="onboarding-icon ob3-icon">T</div><div class="onboarding-title">팀과 함께 성장</div><div class="onboarding-desc">팀 코드로 소속팀과 연결되어<br>코치진과 실시간으로 소통하세요</div><div class="dot-indicators"><div class="dot"></div><div class="dot"></div><div class="dot active"></div></div><button type="button" class="btn-primary" onclick="goScreen('login')" style="width:80%">시작하기</button></div><div class="screen" id="screen-login"><div class="auth-header"><div class="auth-logo" style="font-size:28px;font-weight:800;letter-spacing:-1px">LR</div><div class="auth-title">LongRun</div><div class="auth-subtitle">선수 대시보드</div></div><div class="form-group"><label class="form-label">이메일</label><input class="form-input" type="email" id="loginEmail" placeholder="이메일을 입력하세요"></div><div class="form-group"><label class="form-label">비밀번호</label><div class="input-wrapper"><input class="form-input" type="password" id="loginPw" placeholder="비밀번호를 입력하세요"><button type="button" class="pw-toggle" onclick="togglePw('loginPw',this)">&#x2022;&#x2022;</button></div></div><button type="button" class="btn-primary mt-8" onclick="handleLogin()">로그인</button><div class="auth-links mt-16"><button type="button" class="btn-text" onclick="goScreen('findAccount')">아이디/비번 찾기</button><span style="color:rgba(255,255,255,0.15)">|</span><button type="button" class="btn-text" onclick="goScreen('signup1')">회원가입</button></div><div class="auth-divider">또는</div><button type="button" class="btn-secondary" onclick="showToast('소셜 로그인은 준비 중입니다')">소셜 계정으로 로그인</button></div><div class="screen" id="screen-findAccount"><button type="button" class="back-btn" onclick="goScreen('login')">← 뒤로</button><div class="auth-header"><div class="auth-title">계정 찾기</div></div><div class="tab-bar"><div class="tab-item active" onclick="switchFindTab(0,this)">아이디 찾기</div><div class="tab-item" onclick="switchFindTab(1,this)">비밀번호 찾기</div></div><div id="findTab0"><div class="form-group"><label class="form-label">전화번호</label><div class="form-row"><input class="form-input" type="tel" placeholder="010-0000-0000"><button type="button" class="btn-small" onclick="showToast('인증번호가 발송되었습니다')">인증</button></div></div><div class="form-group"><label class="form-label">인증번호</label><input class="form-input" type="text" placeholder="인증번호 6자리"></div><button type="button" class="btn-primary mt-16" onclick="showToast('등록된 이메일: user@example.com')">아이디 찾기</button></div><div id="findTab1" style="display:none"><div class="form-group"><label class="form-label">이메일</label><input class="form-input" type="email" placeholder="가입한 이메일을 입력하세요"></div><div class="form-group"><label class="form-label">전화번호</label><div class="form-row"><input class="form-input" type="tel" placeholder="010-0000-0000"><button type="button" class="btn-small" onclick="showToast('인증번호가 발송되었습니다')">인증</button></div></div><div class="form-group"><label class="form-label">인증번호</label><input class="form-input" type="text" placeholder="인증번호 6자리"></div><button type="button" class="btn-primary mt-16" onclick="showToast('임시 비밀번호가 이메일로 발송되었습니다')">비밀번호 찾기</button></div></div><div class="screen" id="screen-signup1"><button type="button" class="back-btn" onclick="goScreen('login')">← 뒤로</button><div class="step-indicator"><div class="step-dot active"></div><div class="step-dot"></div><div class="step-dot"></div><div class="step-dot"></div></div><div class="auth-title mb-16">기본 정보</div><div class="form-group"><label class="form-label">닉네임</label><input class="form-input" type="text" id="signNick" placeholder="2~10자 닉네임"></div><div class="form-group"><label class="form-label">이메일</label><div class="form-row"><input class="form-input" type="email" id="signEmail" placeholder="이메일 주소"><button type="button" class="btn-small" onclick="showToast('사용 가능한 이메일입니다')">중복확인</button></div></div><div class="form-group"><label class="form-label">비밀번호</label><div class="input-wrapper"><input class="form-input" type="password" id="signPw" placeholder="영문+숫자+특수문자 8자 이상"><button type="button" class="pw-toggle" onclick="togglePw('signPw',this)">&#x2022;&#x2022;</button></div></div><div class="form-group"><label class="form-label">비밀번호 확인</label><div class="input-wrapper"><input class="form-input" type="password" id="signPw2" placeholder="비밀번호 재입력"><button type="button" class="pw-toggle" onclick="togglePw('signPw2',this)">&#x2022;&#x2022;</button></div></div><div class="form-group"><label class="form-label">전화번호 인증</label><div class="form-row"><input class="form-input" type="tel" id="signPhone" placeholder="010-0000-0000"><button type="button" class="btn-small" onclick="startPhoneVerify()">인증요청</button></div></div><div class="form-group" id="verifyCodeGroup" style="display:none"><div class="form-row"><input class="form-input" type="text" id="signVerifyCode" placeholder="인증번호 6자리"><button type="button" class="btn-small" onclick="confirmVerify()">확인</button></div><div style="font-size:12px;color:#ef4444;margin-top:4px" id="verifyTimer"></div></div><div class="spacer"></div><button type="button" class="btn-primary mt-16" onclick="goSignup2()">다음</button></div><div class="screen" id="screen-signup2"><button type="button" class="back-btn" onclick="goScreen('signup1')">← 뒤로</button><div class="step-indicator"><div class="step-dot done"></div><div class="step-dot active"></div><div class="step-dot"></div><div class="step-dot"></div></div><div class="auth-title mb-16">서비스 이용 동의</div><div class="agreement-box"><div class="agreement-item all" onclick="toggleAllAgreements()"><div class="check-circle" id="agreeAll">&#10003;</div><span>전체 동의</span></div><div class="agreement-item" onclick="toggleAgreement(0)"><div class="check-circle" data-agree="0">&#10003;</div><span>[필수] 서비스 이용약관</span></div><div class="agreement-item" onclick="toggleAgreement(1)"><div class="check-circle" data-agree="1">&#10003;</div><span>[필수] 개인정보 수집 및 이용</span></div><div class="agreement-item" onclick="toggleAgreement(2)"><div class="check-circle" data-agree="2">&#10003;</div><span>[필수] 건강정보 제3자 제공</span></div><div class="agreement-item" onclick="toggleAgreement(3)"><div class="check-circle" data-agree="3">&#10003;</div><span>[필수] 위치정보 이용약관</span></div><div class="agreement-item" onclick="toggleAgreement(4)"><div class="check-circle" data-agree="4">&#10003;</div><span>[선택] 마케팅 정보 수신</span></div></div><div class="spacer"></div><button type="button" class="btn-primary mt-16" onclick="goSignup3()">다음</button></div><div class="screen" id="screen-signup3"><button type="button" class="back-btn" onclick="goScreen('signup2')">← 뒤로</button><div class="step-indicator"><div class="step-dot done"></div><div class="step-dot done"></div><div class="step-dot active"></div><div class="step-dot"></div></div><div class="auth-title mb-16">운동 종목 선택</div><div style="font-size:13px;color:rgba(255,255,255,0.4);margin-bottom:20px">주 종목을 선택해주세요</div><div class="sport-grid"><div class="sport-card" onclick="selectSport(this,'철인3종')"><div class="icon">TRI</div><div class="label">철인3종</div></div><div class="sport-card" onclick="selectSport(this,'봅슬레이')"><div class="icon">BOB</div><div class="label">봅슬레이</div></div><div class="sport-card" onclick="selectSport(this,'스켈레톤')"><div class="icon">SKL</div><div class="label">스켈레톤</div></div><div class="sport-card" onclick="selectSport(this,'태권도')"><div class="icon">TKD</div><div class="label">태권도</div></div><div class="sport-card" onclick="selectSport(this,'축구')"><div class="icon">FC</div><div class="label">축구</div></div></div><div class="spacer"></div><button type="button" class="btn-primary mt-16" onclick="goSignup4()">다음</button></div><div class="screen" id="screen-signup4" style="align-items:center;text-align:center"><button type="button" class="back-btn" onclick="goScreen('signup3')" style="align-self:flex-start">← 뒤로</button><div class="step-indicator"><div class="step-dot done"></div><div class="step-dot done"></div><div class="step-dot done"></div><div class="step-dot active"></div></div><div class="auth-title mb-16">팀 코드 입력</div><div style="font-size:13px;color:rgba(255,255,255,0.4);margin-bottom:8px">코치에게 받은 팀 코드를 입력하세요</div><div class="team-code-input"><input class="code-box" maxlength="1" oninput="codeNext(this,0)" id="tc0"><input class="code-box" maxlength="1" oninput="codeNext(this,1)" id="tc1"><input class="code-box" maxlength="1" oninput="codeNext(this,2)" id="tc2"><input class="code-box" maxlength="1" oninput="codeNext(this,3)" id="tc3"><input class="code-box" maxlength="1" oninput="codeNext(this,4)" id="tc4"><input class="code-box" maxlength="1" oninput="codeNext(this,5)" id="tc5"></div><div style="font-size:12px;color:rgba(255,255,255,0.3);margin-bottom:32px">팀 코드가 없으면 건너뛸 수 있습니다</div><button type="button" class="btn-primary" onclick="completeSignup()" style="width:80%">가입 완료</button><button type="button" class="btn-text mt-8" onclick="completeSignup()">나중에 입력하기</button></div><div class="screen welcome-screen" id="screen-welcome"><div class="welcome-badge" style="font-size:36px;font-weight:800">LR</div><div class="welcome-name" id="welcomeName">환영합니다!</div><div class="welcome-msg">LongRun 선수 대시보드에 오신 것을 환영합니다.<br>지금부터 더 스마트한 훈련을 시작하세요!</div><div class="welcome-code-display"><div class="welcome-code-label">나의 선수 고유코드</div><div class="welcome-code-value" id="athleteCode">LR-0000</div></div><button type="button" class="btn-primary" onclick="goScreen('home')" style="width:80%">시작하기</button></div><div class="screen home-screen" id="screen-home" style="padding-bottom:90px"><div class="home-header"><div><div class="home-greeting">안녕하세요</div><div class="home-name" id="homeName">선수님</div></div><div class="home-avatar" style="font-size:14px;font-weight:700;cursor:pointer" onclick="goScreen('profile')" id="homeAvatar">P</div></div><div class="watch-card" onclick="toggleWatch()"><div class="watch-card-header"><div class="watch-card-title">스마트워치</div><div class="watch-status disconnected" id="watchStatus"><div class="dot-indicator"></div><span>연결 안됨</span></div></div><button type="button" id="manualSyncBtn" class="btn-small" style="display:none;margin-top:10px;width:100%" onclick="manualSync(event)">지금 동기화</button><div class="watch-metrics" id="watchMetrics" style="display:none"><div class="watch-metric"><div class="watch-metric-label">심박수</div><div class="watch-metric-value" id="hrValue">--</div><div class="watch-metric-unit">BPM</div></div><div class="watch-metric"><div class="watch-metric-label">산소포화도</div><div class="watch-metric-value" id="spo2Value">--</div><div class="watch-metric-unit">%</div></div><div class="watch-metric"><div class="watch-metric-label">체온</div><div class="watch-metric-value" id="tempValue">--</div><div class="watch-metric-unit">°C</div></div></div></div><div class="section-card"><div class="section-title" style="justify-content:space-between"><span>오늘의 운동 강도</span><button type="button" class="btn-small" id="intensityResetBtn" style="display:none" onclick="resetIntensity()">다시 선택</button></div><div id="intensitySelector"><div class="intensity-grid"><button type="button" class="intensity-btn" onclick="selectIntensity(1,this)" style="--c:#4ade80">1</button><button type="button" class="intensity-btn" onclick="selectIntensity(2,this)" style="--c:#6ee7a0">2</button><button type="button" class="intensity-btn" onclick="selectIntensity(3,this)" style="--c:#a3e635">3</button><button type="button" class="intensity-btn" onclick="selectIntensity(4,this)" style="--c:#facc15">4</button><button type="button" class="intensity-btn" onclick="selectIntensity(5,this)" style="--c:#fbbf24">5</button><button type="button" class="intensity-btn" onclick="selectIntensity(6,this)" style="--c:#fb923c">6</button><button type="button" class="intensity-btn" onclick="selectIntensity(7,this)" style="--c:#f97316">7</button><button type="button" class="intensity-btn" onclick="selectIntensity(8,this)" style="--c:#ef4444">8</button><button type="button" class="intensity-btn" onclick="selectIntensity(9,this)" style="--c:#dc2626">9</button><button type="button" class="intensity-btn" onclick="selectIntensity(10,this)" style="--c:#b91c1c">10</button></div><div class="intensity-label"><span>가벼움</span><span>보통</span><span>매우 힘듦</span></div></div><div id="intensityResult" style="display:none;text-align:center;padding:12px 0"><div style="font-size:40px;font-weight:800;margin-bottom:4px" id="intensityResultValue">-</div><div style="font-size:12px;color:rgba(255,255,255,0.4)" id="intensityResultTime">선택 시간: --:--</div></div></div><div class="section-card"><div class="section-title">부상 내용</div><div class="injury-tags"><span class="injury-tag" onclick="toggleInjuryTag(this)">무릎</span><span class="injury-tag" onclick="toggleInjuryTag(this)">발목</span><span class="injury-tag" onclick="toggleInjuryTag(this)">어깨</span><span class="injury-tag" onclick="toggleInjuryTag(this)">허리</span><span class="injury-tag" onclick="toggleInjuryTag(this)">손목</span><span class="injury-tag" onclick="toggleInjuryTag(this)">햄스트링</span></div><textarea class="injury-textarea" placeholder="부상 상세 내용을 입력하세요...&#10;예) 왼쪽 무릎 안쪽 통증, 달리기 시 악화"></textarea></div><div class="section-card"><div class="section-title">소속 팀</div><div class="team-info"><div class="team-badge"><div class="team-icon" style="font-size:16px;font-weight:800">T</div><div><div class="team-name" id="homeTeamName">팀 미등록</div><div class="team-code-display" id="homeTeamCode">-</div></div></div><button type="button" class="btn-small" onclick="showTeamCodeModal()">변경</button></div></div><div class="submit-bar"><button type="button" class="btn-primary" onclick="submitDaily()">오늘의 기록 제출</button></div><div class="bottom-nav"><button type="button" class="nav-item active"><div class="nav-icon nav-svg"><svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20" role="img" aria-label="홈"><title>홈</title><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0a1 1 0 01-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1h-2z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>홈</button></div></div><div class="screen" id="screen-profile" style="padding-bottom:40px"><button type="button" class="back-btn" onclick="goScreen('home')">← 뒤로</button><div style="text-align:center;margin-bottom:28px"><div style="position:relative;display:inline-block"><div id="profileAvatar" style="width:88px;height:88px;border-radius:44px;background:linear-gradient(135deg,#667eea,#764ba2);display:flex;justify-content:center;align-items:center;font-size:28px;font-weight:700;margin:0 auto;overflow:hidden;cursor:pointer" onclick="document.getElementById('profilePhotoInput').click()"><span id="profileAvatarText">P</span><img id="profileAvatarImg" alt="프로필 사진" style="width:100%;height:100%;object-fit:cover;display:none;position:absolute;inset:0"></div><div style="position:absolute;bottom:0;right:0;width:28px;height:28px;border-radius:14px;background:#667eea;display:flex;justify-content:center;align-items:center;cursor:pointer;border:3px solid #0f0f1a" onclick="document.getElementById('profilePhotoInput').click()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" role="img" aria-label="사진 변경"><title>사진 변경</title><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg></div><input type="file" id="profilePhotoInput" accept="image/*" style="display:none" onchange="handleProfilePhoto(this)"></div><div style="font-size:18px;font-weight:700;margin-top:12px" id="profileName">선수님</div></div><div class="section-card"><div class="section-title">이름 변경</div><div class="form-row"><input class="form-input" type="text" id="profileNickInput" placeholder="새 이름 입력"><button type="button" class="btn-small" onclick="changeProfileName()">변경</button></div></div><div class="section-card"><div class="section-title">선수 고유코드</div><div style="display:flex;justify-content:space-between;align-items:center"><div style="font-size:20px;font-weight:700;letter-spacing:3px;color:#667eea" id="profileAthleteCode">LR-0000</div><button type="button" class="btn-small" onclick="copyAthleteCode()">복사</button></div></div><div class="section-card"><div class="section-title">약관 및 정책</div><div class="policy-list"><div class="policy-item" onclick="showPolicyModal('서비스 이용약관')"><span>서비스 이용약관</span><span style="color:rgba(255,255,255,0.3);font-size:14px">></span></div><div class="policy-item" onclick="showPolicyModal('개인정보 수집 및 이용')"><span>개인정보 수집 및 이용</span><span style="color:rgba(255,255,255,0.3);font-size:14px">></span></div><div class="policy-item" onclick="showPolicyModal('건강정보 제3자 제공')"><span>건강정보 제3자 제공</span><span style="color:rgba(255,255,255,0.3);font-size:14px">></span></div><div class="policy-item" onclick="showPolicyModal('위치정보 이용약관')"><span>위치정보 이용약관</span><span style="color:rgba(255,255,255,0.3);font-size:14px">></span></div><div class="policy-item" onclick="showPolicyModal('마케팅 정보 수신')"><span>마케팅 정보 수신</span><span style="color:rgba(255,255,255,0.3);font-size:14px">></span></div></div></div><button type="button" class="btn-secondary" style="margin-top:16px;border-color:rgba(239,68,68,0.3);color:#ef4444" onclick="handleLogout()">로그아웃</button></div></div></main><script>class State {
 constructor() {
 this.agreements = [false, false, false, false, false];
 this.sport = "";
@@ -451,8 +11,7 @@ this.intensityTime = "";
 this.watchInterval = null;
 this.profilePhoto = "";
 }
-}</script>
-<script>class Api {
+}</script><script>class Api {
 constructor(baseUrl) {
 this.baseUrl = baseUrl || "";
 this.currentEmail = null;
@@ -555,8 +114,7 @@ return this._request("POST", "/api/watch-data", { ...data, email });
 getBioData() {
 return this._request("GET", "/api/bio-data");
 }
-}</script>
-<script>class Toast {
+}</script><script>class Toast {
 constructor(elementId) {
 this.el = document.getElementById(elementId);
 }
@@ -567,8 +125,7 @@ setTimeout(() => {
 this.el.className = "toast";
 }, 2500);
 }
-}</script>
-<script>class Modal {
+}</script><script>class Modal {
 constructor(overlayId, titleId, descId, actionsId) {
 this.overlay = document.getElementById(overlayId);
 this.titleEl = document.getElementById(titleId);
@@ -585,8 +142,7 @@ this.overlay.classList.add("show");
 close() {
 this.overlay.classList.remove("show");
 }
-}</script>
-<script>class Router {
+}</script><script>class Router {
 constructor() {
 this.beforeEnter = {};
 }
@@ -606,8 +162,7 @@ void el.offsetHeight;
 el.style.animation = "";
 }
 }
-}</script>
-<script>class AuthForm {
+}</script><script>class AuthForm {
 constructor(state, router, toast, api) {
 this.state = state;
 this.router = router;
@@ -656,8 +211,7 @@ return;
 }
 this.router.go("home");
 }
-}</script>
-<script>class PhoneVerify {
+}</script><script>class PhoneVerify {
 constructor(toast) {
 this.toast = toast;
 this.intervalId = null;
@@ -681,8 +235,7 @@ clearInterval(this.intervalId);
 document.getElementById("verifyTimer").textContent = "";
 this.toast.show("전화번호가 인증되었습니다");
 }
-}</script>
-<script>class Signup {
+}</script><script>class Signup {
 constructor(state, router, toast, api) {
 this.state = state;
 this.router = router;
@@ -802,8 +355,7 @@ return;
 }
 showWelcome();
 }
-}</script>
-<script>class WatchSimulator {
+}</script><script>class WatchSimulator {
 constructor(state, api) {
 this.state = state;
 this.api = api || null;
@@ -856,8 +408,7 @@ active_calories: 200 + Math.random() * 300,
 update();
 this.state.watchInterval = setInterval(update, 2000);
 }
-}</script>
-<script>class Intensity {
+}</script><script>class Intensity {
 constructor(state, toast, api) {
 this.state = state;
 this.toast = toast;
@@ -951,13 +502,11 @@ return;
 }
 this.toast.show("오늘의 기록이 제출되었습니다");
 }
-}</script>
-<script>class Injury {
+}</script><script>class Injury {
 toggleTag(el) {
 el.classList.toggle("selected");
 }
-}</script>
-<script>class TeamCode {
+}</script><script>class TeamCode {
 constructor(state, modal, toast, api) {
 this.state = state;
 this.modal = modal;
@@ -991,8 +540,7 @@ this.api
 .catch((e) => this.toast.show(`팀 동기화 실패: ${e.message}`, true));
 }
 }
-}</script>
-<script>class Home {
+}</script><script>class Home {
 constructor(state) {
 this.state = state;
 }
@@ -1005,8 +553,7 @@ document.getElementById("homeTeamName").textContent =
 document.getElementById("homeTeamCode").textContent = this.state.teamCode;
 }
 }
-}</script>
-<script>class Profile {
+}</script><script>class Profile {
 constructor(state, router, modal, toast, intensity) {
 this.state = state;
 this.router = router;
@@ -1094,8 +641,7 @@ document.getElementById("profileAvatarImg").style.display = "none";
 document.getElementById("profileAvatarText").style.display = "";
 }
 }
-}</script>
-<script>class Clock {
+}</script><script>class Clock {
 constructor(elementId) {
 this.el = document.getElementById(elementId);
 }
@@ -1110,8 +656,7 @@ start() {
 this.update();
 setInterval(() => this.update(), 30000);
 }
-}</script>
-<script>(() => {
+}</script><script>(() => {
 const state = new State();
 const toast = new Toast("toast");
 const modal = new Modal("modal", "modalTitle", "modalDesc", "modalActions");
@@ -1182,8 +727,21 @@ if (btn) btn.style.display = "";
 }
 clock.start();
 intensity.scheduleMidnightReset();
-})();</script>
-</body>
-</html>
-</content>
-</invoke>
+// 세션 복원: 서버에 /api/user/me 로 쿠키 유효성 확인 후 유효하면 home 으로 자동 이동.
+// 실패 시 기본 로그인 화면 유지. WebView 쿠키는 앱 종료 시 세션 쿠키가 휘발될 수 있어
+// 서버 세션(Persistent-Auth) 이 남아있는 경우에만 성공한다.
+if (api) {
+api.me()
+.then((user) => {
+if (!user) return;
+state.nickname = user.name || (user.email ? user.email.split("@")[0] : "");
+if (user.player_code) state.athleteCode = user.player_code;
+if (user.team_code) state.teamCode = user.team_code;
+if (user.email) api.currentEmail = user.email;
+router.go("home");
+})
+.catch(() => {
+/* 세션 없음 — 로그인 화면 유지 */
+});
+}
+})();</script></body></html></content></invoke>

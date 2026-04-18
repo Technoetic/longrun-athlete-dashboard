@@ -74,4 +74,22 @@
 
 	clock.start();
 	intensity.scheduleMidnightReset();
+
+	// 세션 복원: 서버에 /api/user/me 로 쿠키 유효성 확인 후 유효하면 home 으로 자동 이동.
+	// 실패 시 기본 로그인 화면 유지. WebView 쿠키는 앱 종료 시 세션 쿠키가 휘발될 수 있어
+	// 서버 세션(Persistent-Auth) 이 남아있는 경우에만 성공한다.
+	if (api) {
+		api.me()
+			.then((user) => {
+				if (!user) return;
+				state.nickname = user.name || (user.email ? user.email.split("@")[0] : "");
+				if (user.player_code) state.athleteCode = user.player_code;
+				if (user.team_code) state.teamCode = user.team_code;
+				if (user.email) api.currentEmail = user.email;
+				router.go("home");
+			})
+			.catch(() => {
+				/* 세션 없음 — 로그인 화면 유지 */
+			});
+	}
 })();
